@@ -1,17 +1,21 @@
 package com.some.orderservice.services.impl;
 
-import com.some.grpc.inventory.ProductResponseDto;
+import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.grpc.InventoryGrpcClient;
+import com.some.orderservice.mappers.OrderMapper;
+import com.some.orderservice.model.entities.OrderItem;
 import com.some.orderservice.model.event.OrderEvent;
-import com.some.orderservice.model.entities.OrderEntity;
+import com.some.orderservice.model.entities.Order;
 import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
+import com.some.orderservice.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,50 +25,43 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryGrpcClient inventoryClient;
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
+    private final UserService userService;
+    private final OrderMapper orderMapper;
 
 
     @Override
-    public void processOrder(String productId, Long quantity) {
-        OrderEntity orderEntity = checkAvailability(productId, quantity);
-        saveOrder(orderEntity);
-        sendOrderEvent(orderEntity);
-    }
-
     @Transactional
-    @Override
-    public OrderEntity saveOrder(OrderEntity orderEntity) {
-        return orderRepository.save(orderEntity);
+    public void processOrder(ProductRequestDto productRequestDto) {
+        Order order = checkAvailability(productRequestDto);
+        orderRepository.save(order);
+        sendOrderEvent(order);
     }
 
     @Override
-    public OrderEntity checkAvailability(String productId, Long quantity) {
-        ProductResponseDto response = inventoryClient.checkAvailability(productId, quantity);
+    public Order checkAvailability(ProductRequestDto productRequestDto) {
 
-        BigDecimal price = BigDecimal.valueOf(response.getPricePennies(), 2);
-        BigDecimal sale = BigDecimal.valueOf(response.getSalePennies(), 2);
+        List<OrderItem> orderItems = inventoryClient.checkAvailability(productRequestDto)
+                .getItemsList()
+                .stream()
+                .map(orderMapper::toOrderItem)
+                .toList();
+        
+        BigDecimal totalPrice = orderItems.stream()
+                .map(OrderItem::totalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalPrice = price.subtract(sale)
-                .multiply(BigDecimal.valueOf(quantity));
-
-        return OrderEntity.builder()
-                .id(UUID.fromString(response.getId()))
-                .quantity(quantity)
-                .price(price)
-                .sale(sale)
+        return Order.builder()
+                .id(UUID.randomUUID())
+                .orderId(UUID.randomUUID())
+                .userId(userService.getCurrentUserId())
+                .orderItems(orderItems)
                 .totalPrice(totalPrice)
                 .build();
     }
 
     @Override
-    public void sendOrderEvent(OrderEntity orderEntity) {
-        OrderEvent orderEvent = OrderEvent.builder()
-                .orderId(orderEntity.getId())
-                .quantity(orderEntity.getQuantity())
-                .price(orderEntity.getPrice())
-                .sale(orderEntity.getSale())
-                .totalPrice(orderEntity.getTotalPrice())
-                .build();
-
+    public void sendOrderEvent(Order order) {
+        OrderEvent orderEvent = orderMapper.toOrderEvent(order);
         kafkaTemplate.send("order-event", orderEvent);
     }
 }

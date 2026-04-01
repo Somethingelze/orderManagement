@@ -25,4 +25,6 @@ public interface UserService {
 
     void registerUser(String username, String rawPassword);
     UserDetails getUserByUsername(String username) throws UsernameNotFoundException;
+
+    UUID getCurrentUserId();
 }

@@ -1,6 +1,6 @@
 package com.some.inventoryservice.services.impl;
 
-import com.some.inventoryservice.exceptions.ProductNotFindException;
+import com.some.inventoryservice.exceptions.ProductNotFoundException;
 import com.some.inventoryservice.model.entities.ProductEntity;
 import com.some.inventoryservice.repository.ProductRepository;
 import com.some.inventoryservice.services.ProductService;
@@ -24,7 +24,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductEntity getProductById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new ProductNotFindException("Product with id: " + id + "not found"));
+        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + "not found"));
     }
 
     @Override
@@ -42,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
                     productRepository.save(newProduct);
                     return newProduct;
                 })
-                .orElseThrow(() -> new ProductNotFindException("Product with id: " + id + "not found"));
+                .orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + "not found"));
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.some.inventoryservice.model.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -12,11 +10,14 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    String id;
 
     @Column
     String name;
@@ -29,6 +30,5 @@ public class ProductEntity {
 
     @Column
     BigDecimal sale;
-
 }
 

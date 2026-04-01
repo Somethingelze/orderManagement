@@ -11,6 +11,7 @@ import com.some.orderservice.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -119,5 +120,13 @@ public class UserServiceImpl implements UserService {
         log.info("Loading user by username: " + username);
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("User with username: " + username +  " doesn't exist"));
+    }
+
+    @Override
+    public UUID getCurrentUserId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"))
+                .getId();
     }
 }
