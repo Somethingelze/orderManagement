@@ -6,7 +6,6 @@ import com.some.orderservice.mappers.OrderMapper;
 import com.some.orderservice.model.entities.OrderItem;
 import com.some.orderservice.model.event.OrderEvent;
 import com.some.orderservice.model.entities.Order;
-import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
 import com.some.orderservice.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
 
     private final InventoryGrpcClient inventoryClient;
-    private final OrderRepository orderRepository;
     private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
     private final UserService userService;
     private final OrderMapper orderMapper;
@@ -33,7 +31,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void processOrder(ProductRequestDto productRequestDto) {
         Order order = checkAvailability(productRequestDto);
-        orderRepository.save(order);
         sendOrderEvent(order);
     }
 

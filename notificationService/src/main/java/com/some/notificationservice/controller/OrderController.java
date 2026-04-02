@@ -26,12 +26,12 @@ public class OrderController {
     }
 
     @GetMapping("/products/{id}")
-    public Page<OrderItemEntity> getProductsByOrdertId(@PathVariable UUID orderId, Pageable pageable) {
-        return orderService.getAllOrderItemsByOrderId(pageable, orderId);
+    public Page<OrderItemEntity> getProductsByOrdertId(@PathVariable UUID id, Pageable pageable) {
+        return orderService.getAllOrderItemsByOrderId(pageable, id);
     }
 
     @GetMapping("/users/{id}")
-    public Page<OrderItemEntity> getOrdersByUserId(@PathVariable UUID orderId, Pageable pageable) {
-        return orderService.getAllOrderItemsByOrderId(pageable, orderId);
+    public Page<OrderEntity> getOrdersByUserId(@PathVariable UUID userId, Pageable pageable) {
+        return orderService.getAllOrdersByUserId(pageable, userId);
     }
 }

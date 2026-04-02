@@ -119,14 +119,14 @@ public class UserServiceImpl implements UserService {
     public UserDetails getUserByUsername(String username) throws UsernameNotFoundException {
         log.info("Loading user by username: " + username);
         return userRepository.findByUsername(username).orElseThrow(
-                () -> new UsernameNotFoundException("User with username: " + username +  " doesn't exist"));
+                () -> new UsernameNotFoundException("User with username: " + username + " doesn't exist"));
     }
 
     @Override
     public UUID getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"))
-                .getId();
+            return userRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"))
+                    .getId();
     }
 }

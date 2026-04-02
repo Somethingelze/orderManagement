@@ -13,16 +13,17 @@ import org.springframework.kafka.annotation.KafkaListener;
 @Slf4j
 public class OrderEventHandler {
 
-    private final KafkaListener kafkaListener;
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
 
     @KafkaListener(topics = "order-event")
     public OrderEntity receiveOrderEvent(OrderEvent orderEvent)    {
-        log.info("Recieved order event {}", orderEvent);
+        log.info("Received order event {}", orderEvent);
         OrderEntity orderEntity = orderMapper.orderEventToOrderEntity(orderEvent);
-        return orderEntity;
+        return orderRepository.save(orderEntity);
+
+
         //TODO отправка на почту или WebSocket
     }
 }

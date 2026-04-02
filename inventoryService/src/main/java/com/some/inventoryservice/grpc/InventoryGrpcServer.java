@@ -39,10 +39,10 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
                 throw new ProductNotEnoughException("Product with id " + id + " not enough");
             }
 
-            Long priceInPennies = product.getPrice()
+            long priceInPennies = product.getPrice()
                     .movePointRight(2)
                     .longValue();
-            Long saleInPennies = product.getSale()
+            long saleInPennies = product.getSale()
                     .movePointRight(2)
                     .longValue();
 
