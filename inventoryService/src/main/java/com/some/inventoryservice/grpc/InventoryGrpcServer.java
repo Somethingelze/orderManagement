@@ -33,9 +33,8 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
 
         Map<String, Long> requestedProducts = request.getOrderItemsMap();
         List<OrderItemDto> orderItems = new ArrayList<>();
-        String generatedOrderId = UUID.randomUUID().toString();
 
-        log.info("Receive order {} in inventory service", generatedOrderId);
+        log.info("Receive order {} in inventory service", request.getOrderId());
 
         requestedProducts.forEach((id, requestedQuantity) -> {
             ProductEntity product = productRepository.findById(id)
@@ -53,8 +52,9 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
                     .longValue();
 
             OrderItemDto orderItem = OrderItemDto.newBuilder()
+                    .setId(UUID.randomUUID().toString())
                     .setProductId(product.getId())
-                    .setOrderId(generatedOrderId)
+                    .setOrderId(request.getOrderId())
                     .setProductName(product.getName())
                     .setPricePennies(priceInPennies)
                     .setSalePennies(saleInPennies)
@@ -78,6 +78,6 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
                 .map(OrderItemDto::getProductId)
                 .toList();
 
-        log.info("Order items {} has been added to order {} in inventory service and sending to order service", productsId, generatedOrderId);
+        log.info("Order items {} has been added to order {} in inventory service and sending to order service", productsId, request.getOrderId());
     }
 }

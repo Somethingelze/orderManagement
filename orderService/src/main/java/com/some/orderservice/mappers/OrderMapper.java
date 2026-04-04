@@ -20,7 +20,7 @@ public interface OrderMapper {
     OrderEvent toOrderEvent(Order order);
 
     @Mapping(target = "name", source = "productName")
-    @Mapping(target = "id", expression = "java(UUID.fromString(source.getProductId()))")
+    @Mapping(target = "productId", expression = "java(UUID.fromString(source.getProductId()))")
     @Mapping(target = "price", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2))")
     @Mapping(target = "sale", expression = "java(BigDecimal.valueOf(source.getSalePennies(), 2))")
     @Mapping(target = "totalPrice", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2).subtract(BigDecimal.valueOf(source.getSalePennies(), 2)))")

@@ -17,10 +17,11 @@ message ProductResponseDto {
 }
 
 message OrderItemDto {
-  string product_id = 1;
-  string order_id = 2;
-  string product_name = 3;
-  int64 price_pennies = 4;
-  int64 sale_pennies = 5;
-  int64 total_price = 6;
+  string id = 1;
+  string product_id = 2;
+  string order_id = 3;
+  string product_name = 4;
+  int64 price_pennies = 5;
+  int64 sale_pennies = 6;
+  int64 total_price = 7;
 }

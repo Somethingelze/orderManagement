@@ -56,8 +56,8 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return Order.builder()
-                .id(UUID.randomUUID())
-                .orderId(UUID.randomUUID())
+                .id(UUID.fromString(productRequestDto.getOrderId()))
+                .orderId(UUID.fromString(productRequestDto.getOrderId()))
                 .userId(userService.getCurrentUserId())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)

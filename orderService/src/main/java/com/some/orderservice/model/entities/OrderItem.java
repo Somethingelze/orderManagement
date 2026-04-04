@@ -8,6 +8,7 @@ import java.util.UUID;
 @Builder
 public record OrderItem (
         UUID id,
+        UUID productId,
         UUID orderId,
         String name,
         BigDecimal price,

@@ -14,8 +14,6 @@ public interface ProductService {
 
     Page<ProductEntity> getAllProducts(Pageable pageable);
 
-//    ProductEntity updateProduct(UUID id, ProductEntity productEntity);
-
     ProductEntity updateProduct(String id, ProductEntity productEntity);
 
     void deleteProduct(UUID id);
