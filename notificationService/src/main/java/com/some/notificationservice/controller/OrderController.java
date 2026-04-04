@@ -31,7 +31,7 @@ public class OrderController {
     }
 
     @GetMapping("/users/{id}")
-    public Page<OrderEntity> getOrdersByUserId(@PathVariable UUID userId, Pageable pageable) {
-        return orderService.getAllOrdersByUserId(pageable, userId);
+    public Page<OrderEntity> getOrdersByUserId(@PathVariable UUID id, Pageable pageable) {
+        return orderService.getAllOrdersByUserId(pageable, id);
     }
 }

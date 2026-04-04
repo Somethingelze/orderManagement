@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface TokenRepository extends JpaRepository<TokenEntity, Long> {
+
     List<TokenEntity> findAllByUserIdAndLoggedOutFalse(UUID user_id);
 
     Optional<TokenEntity> findByAccessToken(String accessToken);

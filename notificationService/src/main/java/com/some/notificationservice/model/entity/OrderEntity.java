@@ -15,8 +15,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderEntity {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -26,7 +26,7 @@ public class OrderEntity {
     private UUID userId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderItemEntity> orderItemEntities;
+    private List<OrderItemEntity> orderItems;
 
     @Column(nullable = false)
     BigDecimal totalPrice;

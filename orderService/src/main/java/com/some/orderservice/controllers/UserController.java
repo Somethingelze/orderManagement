@@ -2,6 +2,7 @@ package com.some.orderservice.controllers;
 
 import com.some.orderservice.model.dto.Request.UserRequestDto;
 import com.some.orderservice.model.dto.Responce.UserResponseDto;
+import com.some.orderservice.model.enums.Role;
 import com.some.orderservice.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +33,13 @@ public class UserController {
     }
 
     @PostMapping
-    public UserResponseDto createUser(@RequestBody UserRequestDto userRequestDto, @RequestParam String rawPassword) {
-        return userService.createUser(userRequestDto, rawPassword);
+    public UserResponseDto createUser(@RequestBody UserRequestDto userRequestDto) {
+        return userService.createUser(userRequestDto);
+    }
+
+    @PutMapping("/{id}")
+    public UserResponseDto updateUser(@RequestParam Role role, @PathVariable UUID id) {
+        return userService.changeUserRole(role, id);
     }
 
     @DeleteMapping("/{id}")

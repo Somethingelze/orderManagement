@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductEntity updateProduct(UUID id, ProductEntity productEntity) {
+    public ProductEntity updateProduct(String id, ProductEntity productEntity) {
         return productRepository.findById(id)
                 .map(newProduct ->{
                     newProduct.setName(productEntity.getName());

@@ -14,10 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +27,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     @Override
@@ -48,12 +46,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto createUser(UserRequestDto userRequestDto, String rawPassword) {
+    public UserResponseDto createUser(UserRequestDto userRequestDto) {
         UserEntity userEntity = UserEntity.builder()
                 .username(userRequestDto.username())
-                .password(passwordEncoder.encode(rawPassword))
+                .password(passwordEncoder.encode(userRequestDto.password()))
                 .email(userRequestDto.email())
-                .role(userRequestDto.role())
+                .role(Role.USER)
                 .build();
         userRepository.save(userEntity);
 
@@ -68,15 +66,23 @@ public class UserServiceImpl implements UserService {
                 .map(user -> {
                     user.setUsername(userRequestDto.username());
                     user.setEmail(userRequestDto.email());
-                    user.setRole(userRequestDto.role());
                     log.info("User with id: {} was updated", id);
                     return userMapper.toUserResponseDto(user);
                 })
                 .orElseThrow(() -> new UserNotFoundException("User with id: " + id + "not found"));
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable UUID id) {
+    @Override
+    public UserResponseDto changeUserRole(Role role, UUID id) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id: " + id + "not found"));
+        userEntity.setRole(role);
+        userRepository.save(userEntity);
+        return userMapper.toUserResponseDto(userEntity);
+    }
+
+    @Override
+    public void deleteUser(UUID id) {
         log.info("Deleting user by id: {}", id);
         userRepository.deleteById(id);
     }
@@ -116,17 +122,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails getUserByUsername(String username) throws UsernameNotFoundException {
-        log.info("Loading user by username: " + username);
-        return userRepository.findByUsername(username).orElseThrow(
-                () -> new UsernameNotFoundException("User with username: " + username + " doesn't exist"));
-    }
-
-    @Override
     public UUID getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.info("Getting current user name: {}", username);
             return userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"))
                     .getId();
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        log.info("Loading user by username: " + username);
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException("User with username: " + username +  " doesn't exist"));
     }
 }

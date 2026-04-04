@@ -2,7 +2,10 @@ package com.some.orderservice.services;
 
 import com.some.orderservice.model.entities.UserEntity;
 import com.some.orderservice.repositories.TokenRepository;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParserBuilder;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +22,17 @@ public class JwtService {
     @Value("${security.jwt.secret_key}")
     private String secretKey;
 
+    @Value("${security.jwt.access_token_expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${security.jwt.refresh_token_expiration}")
+    private long refreshTokenExpiration;
+
     private final TokenRepository tokenRepository;
 
     public JwtService(TokenRepository tokenRepository) {
         this.tokenRepository = tokenRepository;
     }
-
-    private String secret = "mySecretKey"; // Никогда не храним секрет в коде в реальных проектах!
 
     private SecretKey getSignInKey() {
 
@@ -44,6 +51,15 @@ public class JwtService {
         return builder.compact();
     }
 
+    public String generateAccessToken(UserEntity user) {
+
+        return generateToken(user, accessTokenExpiration);
+    }
+
+    public String generateRefreshToken(UserEntity user) {
+
+        return generateToken(user, refreshTokenExpiration);
+    }
 
     private Claims extractAllClaims(String token) {
 
@@ -71,18 +87,17 @@ public class JwtService {
     }
 
     private boolean isAccessTokenExpired(String token) {
-        return !extractExpiration(token).before(new Date());
+        return extractExpiration(token).before(new Date());
     }
 
     public boolean isValid(String token, UserDetails user) {
-
         String username = extractUsername(token);
 
         boolean isValidToken = tokenRepository.findByAccessToken(token)
                 .map(t -> !t.isLoggedOut()).orElse(false);
 
         return username.equals(user.getUsername())
-                && isAccessTokenExpired(token)
+                && !isAccessTokenExpired(token)
                 && isValidToken;
     }
 

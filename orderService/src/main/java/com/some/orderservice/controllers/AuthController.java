@@ -7,33 +7,36 @@ import com.some.orderservice.services.AuthentificationService;
 import com.some.orderservice.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
-    private AuthentificationService authenticationService;
-    private UserService userService;
+    private final AuthentificationService authenticationService;
+    private final UserService userService;
 
-    @GetMapping("/reg")
+    @PostMapping("/reg")
     public ResponseEntity<String> register(
             @RequestBody RegistrationRequestDto registrationDto) {
 
         if (userService.existsByUsername(registrationDto.getUsername())) {
-            return ResponseEntity.badRequest().body("Имя пользователя уже занято");
+            log.info("Попытка регистрации существующего пользователя с именем: "  + registrationDto.getUsername());
+            return ResponseEntity.badRequest().body("Имя пользователя " + registrationDto.getUsername() + " уже занято");
         }
 
         authenticationService.register(registrationDto);
 
-        return ResponseEntity.ok("Регистрация прошла успешно");
+        log.info("Успешно зарегистрирован пользователь " + registrationDto.getUsername());
+        return ResponseEntity.ok("Регистрация пользователя " + registrationDto.getUsername() + " прошла успешно");
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody LoginRequestDto request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }

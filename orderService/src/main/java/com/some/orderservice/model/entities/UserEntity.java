@@ -31,7 +31,7 @@ public class UserEntity implements UserDetails {
     @NotBlank(message = "Имя пользователя не может быть пустым")
     private String username;
 
-    @Column(name = "password", length = 50, nullable = false)
+    @Column(name = "password", nullable = false)
     @NotBlank(message = "Пароль не может быть пустым")
     private String password;
 

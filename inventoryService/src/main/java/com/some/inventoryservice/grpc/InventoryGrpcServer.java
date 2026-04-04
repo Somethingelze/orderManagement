@@ -10,6 +10,7 @@ import com.some.inventoryservice.model.entities.ProductEntity;
 import com.some.inventoryservice.repository.ProductRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 
+@Slf4j
 @GrpcService
 @RequiredArgsConstructor
 public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceImplBase {
@@ -28,15 +30,19 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
     @Override
     @Transactional
     public void checkAvailability(ProductRequestDto request, StreamObserver<ProductResponseDto> responseObserver) {
+
         Map<String, Long> requestedProducts = request.getOrderItemsMap();
         List<OrderItemDto> orderItems = new ArrayList<>();
+        String generatedOrderId = UUID.randomUUID().toString();
+
+        log.info("Receive order {} in inventory service", generatedOrderId);
 
         requestedProducts.forEach((id, requestedQuantity) -> {
-            ProductEntity product = productRepository.findById(UUID.fromString(id))
+            ProductEntity product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with id " + id + " not found"));
 
             if (product.getQuantity() < requestedQuantity) {
-                throw new ProductNotEnoughException("Product with id " + id + " not enough");
+                throw new ProductNotEnoughException("Product with id " + id + " is not enough");
             }
 
             long priceInPennies = product.getPrice()
@@ -48,6 +54,7 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
 
             OrderItemDto orderItem = OrderItemDto.newBuilder()
                     .setProductId(product.getId())
+                    .setOrderId(generatedOrderId)
                     .setProductName(product.getName())
                     .setPricePennies(priceInPennies)
                     .setSalePennies(saleInPennies)
@@ -57,6 +64,7 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
             product.setQuantity(product.getQuantity() - requestedQuantity);
 
             orderItems.add(orderItem);
+            log.info("Product with id " + orderItem.getProductId() + " and name " + orderItem.getProductName() + " has been added to order items");
         });
 
         ProductResponseDto productResponseDto = ProductResponseDto.newBuilder()
@@ -65,5 +73,11 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
 
         responseObserver.onNext(productResponseDto);
         responseObserver.onCompleted();
+
+        List<String> productsId = orderItems.stream()
+                .map(OrderItemDto::getProductId)
+                .toList();
+
+        log.info("Order items {} has been added to order {} in inventory service and sending to order service", productsId, generatedOrderId);
     }
 }

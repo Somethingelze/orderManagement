@@ -33,7 +33,7 @@ public class ProductController {
     }
 
     @PostMapping("/{id}")
-    public ProductEntity updateProduct(@PathVariable UUID id, @RequestBody ProductEntity productEntity) {
+    public ProductEntity updateProduct(@PathVariable String id, @RequestBody ProductEntity productEntity) {
         return productService.updateProduct(id, productEntity);
     }
 

@@ -4,7 +4,6 @@ import com.some.inventoryservice.model.entities.ProductEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface ProductService {
@@ -15,7 +14,9 @@ public interface ProductService {
 
     Page<ProductEntity> getAllProducts(Pageable pageable);
 
-    ProductEntity updateProduct(UUID id, ProductEntity productEntity);
+//    ProductEntity updateProduct(UUID id, ProductEntity productEntity);
+
+    ProductEntity updateProduct(String id, ProductEntity productEntity);
 
     void deleteProduct(UUID id);
 }

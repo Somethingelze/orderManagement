@@ -12,6 +12,6 @@ public record OrderEvent(
         UUID id,
         UUID orderId,
         UUID userId,
-        List<OrderItemEntity> orderItemEntities,
+        List<OrderItemEntity> orderItems,
         BigDecimal totalPrice
 ) {}

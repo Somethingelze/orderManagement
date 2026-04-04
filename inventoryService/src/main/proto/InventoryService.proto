@@ -8,7 +8,8 @@ service InventoryService {
 }
 
 message ProductRequestDto {
-  map<string, int64> order_items = 1;
+  string order_id = 1;
+  map<string, int64> order_items = 2;
 }
 
 message ProductResponseDto {
@@ -17,8 +18,9 @@ message ProductResponseDto {
 
 message OrderItemDto {
   string product_id = 1;
-  string product_name = 2;
-  int64 price_pennies = 3;
-  int64 sale_pennies = 4;
-  int64 total_price = 5;
+  string order_id = 2;
+  string product_name = 3;
+  int64 price_pennies = 4;
+  int64 sale_pennies = 5;
+  int64 total_price = 6;
 }
