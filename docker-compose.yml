@@ -51,28 +51,32 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   inventory-service:
-    build: ./inventoryService
+    build: ./inventory-service
     ports:
       - "9090:9090"
       - "8081:8081"
+    env_file:
+      - inventory-service/.env
     depends_on:
       - inventory-db
 
   order-service:
-    build: ./orderService
+    build: ./order-service
     ports:
       - "8080:8080"
     env_file:
-      - orderService/.env
+      - order-service/.env
     depends_on:
       - order-db
       - kafka
       - inventory-service
 
   notification-service:
-    build: ./notificationService
+    build: ./notification-service
     ports:
       - "8082:8082"
+    env_file:
+      - notification-service/.env
     depends_on:
       - notification-db
       - kafka
