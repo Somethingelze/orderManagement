@@ -34,4 +34,7 @@ public class OrderItemEntity {
     @Column(nullable = false)
     private BigDecimal totalPrice;
 
+    @Column
+    private boolean available;
+
 }

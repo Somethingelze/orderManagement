@@ -6,6 +6,7 @@ import com.some.orderservice.mappers.OrderMapper;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.entities.Order;
 import com.some.orderservice.model.entities.OrderItem;
+import com.some.orderservice.model.entities.UserEntity;
 import com.some.orderservice.model.event.OrderEvent;
 import com.some.orderservice.services.OrderService;
 import com.some.orderservice.services.UserService;
@@ -38,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
 
         ProductRequestDto productRequestDto = orderMapper.toProductRequestDto(orderRequestDto);
         Order order = checkAvailability(productRequestDto);
+        log.info("ISAVAILABLE" + order.orderItems().stream().map(x -> x.available()).toList());
         sendOrderEvent(order);
     }
 
@@ -51,8 +53,6 @@ public class OrderServiceImpl implements OrderService {
                 .map(orderMapper::toOrderItem)
                 .toList();
 
-
-
         BigDecimal totalPrice = orderItems.stream()
                 .map(OrderItem::totalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -61,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
                 .id(UUID.fromString(productRequestDto.getOrderId()))
                 .orderId(UUID.fromString(productRequestDto.getOrderId()))
                 .userId(userService.getCurrentUserId())
+                .userEmail(userService.getCurrentUserEmail())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
                 .build();
@@ -70,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
     public void sendOrderEvent(Order order) {
         log.info("Order event {} send to notificationService ", order.orderId());
         OrderEvent orderEvent = orderMapper.toOrderEvent(order);
+        log.info("ISAVAILABLE " + orderEvent.orderItems().stream().map(x -> x.available()).toList());
         kafkaTemplate.send("order-event", orderEvent);
     }
 }

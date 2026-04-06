@@ -40,9 +40,7 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
             ProductEntity product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with id " + id + " not found"));
 
-            if (product.getQuantity() < requestedQuantity) {
-                throw new ProductNotEnoughException("Product with id " + id + " is not enough");
-            }
+            boolean isAvailable = requestedQuantity < product.getQuantity();
 
             long priceInPennies = product.getPrice()
                     .movePointRight(2)
@@ -58,7 +56,8 @@ public class InventoryGrpcServer extends InventoryServiceGrpc.InventoryServiceIm
                     .setProductName(product.getName())
                     .setPricePennies(priceInPennies)
                     .setSalePennies(saleInPennies)
-                    .setTotalPrice(priceInPennies - saleInPennies * requestedQuantity)
+                    .setTotalPrice((priceInPennies - saleInPennies) * requestedQuantity)
+                    .setIsAvailable(isAvailable)
                     .build();
 
             product.setQuantity(product.getQuantity() - requestedQuantity);

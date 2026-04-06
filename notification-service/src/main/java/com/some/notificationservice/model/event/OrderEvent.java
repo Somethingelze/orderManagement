@@ -12,7 +12,7 @@ public record OrderEvent(
         UUID id,
         UUID orderId,
         UUID userId,
-        String email,
+        String userEmail,
         List<OrderItemEntity> orderItems,
         BigDecimal totalPrice
 ) {}

@@ -27,6 +27,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private UUID userId;
 
+    @Column
+    private String userEmail;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemEntity> orderItems;
 

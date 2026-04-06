@@ -12,6 +12,7 @@ public record Order(
         UUID id,
         UUID orderId,
         UUID userId,
+        String userEmail,
         List<OrderItem> orderItems,
         BigDecimal totalPrice,
         Status status

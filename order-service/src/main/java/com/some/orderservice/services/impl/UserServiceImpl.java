@@ -136,4 +136,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("User with username: " + username +  " doesn't exist"));
     }
+
+    @Override
+    public String getCurrentUserEmail() {
+        UserEntity user = userRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        log.info("Get user eMail: {}", user.getEmail());
+        return user.getEmail();
+    }
 }

@@ -24,6 +24,7 @@ public interface OrderMapper {
     @Mapping(target = "price", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2))")
     @Mapping(target = "sale", expression = "java(BigDecimal.valueOf(source.getSalePennies(), 2))")
     @Mapping(target = "totalPrice", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2).subtract(BigDecimal.valueOf(source.getSalePennies(), 2)))")
+    @Mapping(target = "available", expression = "java(source.getIsAvailable())")
     OrderItem toOrderItem (OrderItemDto source);
 
     @Mapping(target = "orderId", source = "orderId")

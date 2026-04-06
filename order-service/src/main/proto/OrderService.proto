@@ -24,4 +24,5 @@ message OrderItemDto {
   int64 price_pennies = 5;
   int64 sale_pennies = 6;
   int64 total_price = 7;
+  bool isAvailable = 8;
 }

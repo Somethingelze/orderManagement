@@ -34,4 +34,6 @@ public interface UserService extends UserDetailsService {
     UserDetails loadUserByUsername(String username);
 
     UUID getCurrentUserId();
+
+    String getCurrentUserEmail();
 }

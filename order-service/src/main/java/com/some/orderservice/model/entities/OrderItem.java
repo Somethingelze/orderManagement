@@ -13,6 +13,7 @@ public record OrderItem (
         String name,
         BigDecimal price,
         BigDecimal sale,
-        BigDecimal totalPrice
+        BigDecimal totalPrice,
+        boolean available
 ){
 }
