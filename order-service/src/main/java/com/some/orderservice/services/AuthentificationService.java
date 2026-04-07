@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface AuthentificationService {
     void register(RegistrationRequestDto request);
     AuthenticationResponseDto authenticate(LoginRequestDto request);

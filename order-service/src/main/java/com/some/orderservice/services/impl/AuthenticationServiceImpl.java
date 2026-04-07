@@ -1,5 +1,6 @@
 package com.some.orderservice.services.impl;
 
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.mappers.UserMapper;
 import com.some.orderservice.model.dto.Request.LoginRequestDto;
 import com.some.orderservice.model.dto.Request.RegistrationRequestDto;
@@ -34,6 +35,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Transactional
+@Loggable
 public class AuthenticationServiceImpl implements AuthentificationService {
 
     private final UserRepository userRepository;
@@ -44,19 +46,17 @@ public class AuthenticationServiceImpl implements AuthentificationService {
     private final UserMapper userMapper;
 
     public void register(RegistrationRequestDto request) {
-        log.info("Register request: {}", request);
 
         UserEntity user = new UserEntity();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
+        user.setUsername(request.username());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setEmail(request.email());
         user.setRole(Role.USER);
 
         userRepository.save(user);
     }
 
     private void revokeAllToken(UserEntity user) {
-        log.info("Revoking all tokens for user {}", user.getUsername());
 
         List<TokenEntity> validTokens = tokenRepository.findAllByUserIdAndLoggedOutFalse(user.getId());
 
@@ -70,9 +70,6 @@ public class AuthenticationServiceImpl implements AuthentificationService {
     }
 
     private void saveUserToken(String accessToken, String refreshToken, UserEntity user) {
-
-        log.info("Saving user token for user {}", user.getUsername());
-
         TokenEntity token = new TokenEntity();
 
         token.setAccessToken(accessToken);
@@ -84,9 +81,6 @@ public class AuthenticationServiceImpl implements AuthentificationService {
     }
 
     public AuthenticationResponseDto authenticate(LoginRequestDto request) {
-
-        log.info("Authenticate request: {}", request);
-
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),

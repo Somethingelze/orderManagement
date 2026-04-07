@@ -1,5 +1,6 @@
 package com.some.notificationservice.mapper;
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.model.entity.OrderEntity;
 import com.some.notificationservice.model.entity.OrderItemEntity;
 import com.some.notificationservice.model.event.OrderEvent;
@@ -8,6 +9,7 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 @Slf4j
+@Loggable
 public abstract class OrderMapper {
 
     @Mapping(target = "id", source = "id")

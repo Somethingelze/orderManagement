@@ -1,5 +1,6 @@
 package com.some.inventoryservice.controllers;
 
+import com.some.inventoryservice.annotations.Loggable;
 import com.some.inventoryservice.model.entities.ProductEntity;
 import com.some.inventoryservice.services.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
+@Loggable
 public class ProductController {
 
     private final ProductService productService;

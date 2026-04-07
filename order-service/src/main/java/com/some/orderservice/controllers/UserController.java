@@ -1,5 +1,6 @@
 package com.some.orderservice.controllers;
 
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.model.dto.Request.UserRequestDto;
 import com.some.orderservice.model.dto.Responce.UserResponseDto;
 import com.some.orderservice.model.enums.Role;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Loggable
 public class UserController {
 
     private final UserService userService;

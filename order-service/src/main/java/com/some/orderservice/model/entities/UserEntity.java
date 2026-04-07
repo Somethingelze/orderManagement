@@ -20,6 +20,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class UserEntity implements UserDetails {
 
     @Id

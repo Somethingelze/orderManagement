@@ -1,5 +1,6 @@
 package com.some.notificationservice.service.impl;
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.model.entity.OrderEntity;
 import com.some.notificationservice.model.entity.OrderItemEntity;
 import com.some.notificationservice.service.EmailNotificationService;
@@ -13,6 +14,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Loggable
 public class NotificationSenderImpl extends NotificationSender {
 
     private final EmailNotificationService emailNotificationService;
@@ -23,26 +25,22 @@ public class NotificationSenderImpl extends NotificationSender {
 
         boolean hasUnavailable = !getUnavailableProductName(orderEntity).isEmpty();
         boolean allUnavailable = orderEntity.getOrderItems().stream().noneMatch(OrderItemEntity::isAvailable);
-        log.info("ISAVAILABLE IN SENDING NOTIFY" + allUnavailable +  hasUnavailable + orderEntity.getOrderItems().stream().map(OrderItemEntity::isAvailable).toList());
         List<String> unavailableProductName = getUnavailableProductName(orderEntity);
 
         if(hasUnavailable) {
 
             emailNotificationService.sendOrderConfirmation(orderEntity.getUserEmail(), orderEntity.getOrderId());
             webSocketNotificationService.notifyUser(orderEntity.getUserId(), orderEntity.getOrderId());
-            log.info("Notifications for order: {} have been sent", orderEntity.getOrderId());
 
         } else if (allUnavailable) {
 
             emailNotificationService.sendDeclineNotification(orderEntity.getUserEmail(), orderEntity.getOrderId(), unavailableProductName );
             webSocketNotificationService.notifyUserDeclineOrder(orderEntity.getUserId(), orderEntity.getOrderId(), unavailableProductName);
-            log.info("Notifications for order: {} have been sent with decline", orderEntity.getOrderId());
 
         } else {
 
             emailNotificationService.sendOrderConfirmation(orderEntity.getUserEmail(), orderEntity.getOrderId(), unavailableProductName);
             webSocketNotificationService.notifyUser(orderEntity.getUserId(), orderEntity.getOrderId(), unavailableProductName);
-            log.info("Notifications for order: {} has been sent without unavailable products {}", orderEntity.getOrderId(), unavailableProductName);
 
         }
     }

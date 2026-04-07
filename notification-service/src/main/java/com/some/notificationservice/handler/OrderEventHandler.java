@@ -1,6 +1,7 @@
 package com.some.notificationservice.handler;
 
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.mapper.OrderMapper;
 import com.some.notificationservice.model.entity.OrderEntity;
 import com.some.notificationservice.model.entity.OrderItemEntity;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Loggable
 public class OrderEventHandler {
 
     private final OrderRepository orderRepository;

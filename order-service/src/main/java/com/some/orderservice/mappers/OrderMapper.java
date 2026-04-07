@@ -2,7 +2,9 @@ package com.some.orderservice.mappers;
 
 import com.some.grpc.inventory.OrderItemDto;
 import com.some.grpc.inventory.ProductRequestDto;
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
+import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.Order;
 import com.some.orderservice.model.entities.OrderItem;
 import com.some.orderservice.model.event.OrderEvent;
@@ -15,6 +17,8 @@ import java.util.UUID;
         imports = {BigDecimal.class, UUID.class},
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED)
+
+@Loggable
 public interface OrderMapper {
 
     OrderEvent toOrderEvent(Order order);
@@ -30,6 +34,9 @@ public interface OrderMapper {
     @Mapping(target = "orderId", source = "orderId")
     @Mapping(target = "orderItems", ignore = true)
     ProductRequestDto toProductRequestDto(OrderRequestDto orderRequestDto);
+
+    @Mapping(target = "orderId", source = "id")
+    OrderResponseDto toOrderResponseDto(Order order);
 
     @AfterMapping
     default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {

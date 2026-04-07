@@ -1,5 +1,6 @@
 package com.some.orderservice.services.impl;
 
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.exceptions.UserNotFoundException;
 import com.some.orderservice.mappers.UserMapper;
 import com.some.orderservice.model.dto.Request.UserRequestDto;
@@ -24,6 +25,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Loggable
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -32,7 +34,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDto> getAllUsers() {
-        log.info("Getting all users");
         return userRepository.findAll().stream()
                 .map(userMapper::toUserResponseDto)
                 .toList();
@@ -40,12 +41,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getUserById(UUID id) {
-        log.info("Getting user by id: {}", id);
         UserEntity user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return userMapper.toUserResponseDto(user);
     }
 
     @Override
+    @Transactional
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
         UserEntity userEntity = UserEntity.builder()
                 .username(userRequestDto.username())
@@ -59,8 +60,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDto updateUser(UUID id, UserRequestDto userRequestDto) {
-        log.info("Start updating user by id: {}", id);
 
         return userRepository.findById(id)
                 .map(user -> {
@@ -73,6 +74,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDto changeUserRole(Role role, UUID id) {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id: " + id + "not found"));
@@ -83,14 +85,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(UUID id) {
-        log.info("Deleting user by id: {}", id);
         userRepository.deleteById(id);
     }
 
 
     @Override
+    @Transactional
     public void registerUser(String username, String rawPassword) {
-        log.info("Registering user: " + username);
         String encodedPassword = passwordEncoder.encode(rawPassword);
         if (encodedPassword != null) {
             UserEntity user = UserEntity.builder()
@@ -105,26 +106,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean existsByUsername(String username) {
-        log.info("Checking if user with username: " + username);
         return userRepository.findByUsername(username).isPresent();
     }
 
     @Override
     public boolean existsById(UUID id) {
-        log.info("Checking if user with id: " + id);
         return userRepository.findById(id).isPresent();
     }
 
     @Override
     public void deleteUserById(UUID id) {
-        log.info("Deleting user with id: " + id);
         userRepository.deleteById(id);
     }
 
     @Override
     public UUID getCurrentUserId() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Getting current user name: {}", username);
             return userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"))
                     .getId();
@@ -132,7 +129,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.info("Loading user by username: " + username);
         return userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("User with username: " + username +  " doesn't exist"));
     }
@@ -141,7 +137,6 @@ public class UserServiceImpl implements UserService {
     public String getCurrentUserEmail() {
         UserEntity user = userRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        log.info("Get user eMail: {}", user.getEmail());
         return user.getEmail();
     }
 }

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class ProductEntity {
 
     @Id

@@ -1,7 +1,9 @@
 package com.some.notificationservice.service.impl;
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.service.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Loggable
 public class EmailNotificationServiceImpl extends EmailNotificationService {
 
     private final JavaMailSender mailSender;

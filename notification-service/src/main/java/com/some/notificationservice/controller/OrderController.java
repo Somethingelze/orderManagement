@@ -1,5 +1,6 @@
 package com.some.notificationservice.controller;
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.model.entity.OrderEntity;
 import com.some.notificationservice.model.entity.OrderItemEntity;
 import com.some.notificationservice.service.OrderService;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@Loggable
 public class OrderController {
 
     private final OrderService orderService;

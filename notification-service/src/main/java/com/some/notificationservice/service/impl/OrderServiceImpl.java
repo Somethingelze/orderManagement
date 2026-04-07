@@ -1,5 +1,6 @@
 package com.some.notificationservice.service.impl;
 
+import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.model.entity.OrderEntity;
 import com.some.notificationservice.model.entity.OrderItemEntity;
 import com.some.notificationservice.repository.OrderItemRepository;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Loggable
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;

@@ -1,12 +1,13 @@
 package com.some.orderservice.services.impl;
 
 import com.some.grpc.inventory.ProductRequestDto;
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.grpc.InventoryGrpcClient;
 import com.some.orderservice.mappers.OrderMapper;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
+import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.Order;
 import com.some.orderservice.model.entities.OrderItem;
-import com.some.orderservice.model.entities.UserEntity;
 import com.some.orderservice.model.event.OrderEvent;
 import com.some.orderservice.services.OrderService;
 import com.some.orderservice.services.UserService;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Loggable
 public class OrderServiceImpl implements OrderService {
 
     private final InventoryGrpcClient inventoryClient;
@@ -31,21 +33,18 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
 
-    @Transactional
     @Override
-    public void processOrder(OrderRequestDto orderRequestDto) {
-
-        log.info("Start processing Order Request " + orderRequestDto.getOrderId());
-
+    public OrderResponseDto processOrder(OrderRequestDto orderRequestDto) {
+        orderRequestDto.setOrderId(UUID.randomUUID().toString());
         ProductRequestDto productRequestDto = orderMapper.toProductRequestDto(orderRequestDto);
+
         Order order = checkAvailability(productRequestDto);
-        log.info("ISAVAILABLE" + order.orderItems().stream().map(x -> x.available()).toList());
         sendOrderEvent(order);
+        return orderMapper.toOrderResponseDto(order);
     }
 
     @Override
     public Order checkAvailability(ProductRequestDto productRequestDto) {
-        log.info("Received request to check availability " + productRequestDto.getOrderId());
 
         List<OrderItem> orderItems = inventoryClient.checkAvailability(productRequestDto)
                 .getItemsList()
@@ -69,9 +68,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void sendOrderEvent(Order order) {
-        log.info("Order event {} send to notificationService ", order.orderId());
         OrderEvent orderEvent = orderMapper.toOrderEvent(order);
-        log.info("ISAVAILABLE " + orderEvent.orderItems().stream().map(x -> x.available()).toList());
         kafkaTemplate.send("order-event", orderEvent);
     }
 }

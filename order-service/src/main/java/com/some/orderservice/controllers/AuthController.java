@@ -1,5 +1,6 @@
 package com.some.orderservice.controllers;
 
+import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.model.dto.Request.LoginRequestDto;
 import com.some.orderservice.model.dto.Request.RegistrationRequestDto;
 import com.some.orderservice.model.dto.Responce.AuthenticationResponseDto;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
+@Loggable
 public class AuthController {
 
     private final AuthentificationService authenticationService;
@@ -25,15 +27,15 @@ public class AuthController {
     public ResponseEntity<String> register(
             @RequestBody RegistrationRequestDto registrationDto) {
 
-        if (userService.existsByUsername(registrationDto.getUsername())) {
-            log.info("Попытка регистрации существующего пользователя с именем: "  + registrationDto.getUsername());
-            return ResponseEntity.badRequest().body("Имя пользователя " + registrationDto.getUsername() + " уже занято");
+        if (userService.existsByUsername(registrationDto.username())) {
+            log.info("Попытка регистрации существующего пользователя с именем: "  + registrationDto.username());
+            return ResponseEntity.badRequest().body("Имя пользователя " + registrationDto.username() + " уже занято");
         }
 
         authenticationService.register(registrationDto);
 
-        log.info("Успешно зарегистрирован пользователь " + registrationDto.getUsername());
-        return ResponseEntity.ok("Регистрация пользователя " + registrationDto.getUsername() + " прошла успешно");
+        log.info("Успешно зарегистрирован пользователь " + registrationDto.username());
+        return ResponseEntity.ok("Регистрация пользователя " + registrationDto.username() + " прошла успешно");
     }
 
     @PostMapping("/login")

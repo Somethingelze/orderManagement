@@ -2,6 +2,7 @@ package com.some.notificationservice.model.event;
 
 import com.some.notificationservice.model.entity.OrderItemEntity;
 import lombok.Builder;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.List;
