@@ -1,9 +1,9 @@
 package com.some.inventoryservice.services.impl;
 
+import com.some.commonlib.annotations.Loggable;
 import com.some.grpc.inventory.OrderItemDto;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.grpc.inventory.ProductResponseDto;
-import com.some.inventoryservice.annotations.Loggable;
 import com.some.inventoryservice.exceptions.ProductNotFoundException;
 import com.some.inventoryservice.model.entities.ProductEntity;
 import com.some.inventoryservice.repository.ProductRepository;
@@ -82,7 +82,6 @@ public class ProductServiceImpl implements ProductService {
             OrderItemDto orderItem = OrderItemDto.newBuilder()
                     .setId(UUID.randomUUID().toString())
                     .setProductId(product.getId())
-                    .setOrderId(request.getOrderId())
                     .setProductName(product.getName())
                     .setPricePennies(priceInPennies)
                     .setSalePennies(saleInPennies)

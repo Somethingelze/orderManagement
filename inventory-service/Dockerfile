@@ -1,12 +1,4 @@
-FROM gradle:8.14-jdk21 AS build
-WORKDIR /home/gradle/src
-
-COPY --chown=gradle:gradle build.gradle settings.gradle ./
-RUN gradle dependencies
-COPY --chown=gradle:gradle src ./src
-RUN gradle build -x test
-
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
+COPY build/libs/inventory-service-*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

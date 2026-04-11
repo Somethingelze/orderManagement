@@ -1,8 +1,8 @@
 package com.some.notificationservice.service.impl;
 
-import com.some.notificationservice.annotations.Loggable;
-import com.some.notificationservice.model.entity.OrderEntity;
-import com.some.notificationservice.model.entity.OrderItemEntity;
+import com.some.commonlib.annotations.Loggable;
+import com.some.notificationservice.model.entity.Order;
+import com.some.notificationservice.model.entity.OrderItem;
 import com.some.notificationservice.service.EmailNotificationService;
 import com.some.notificationservice.service.NotificationSender;
 import lombok.RequiredArgsConstructor;
@@ -21,36 +21,36 @@ public class NotificationSenderImpl extends NotificationSender {
     private final WebSocketNotificationServiceImpl webSocketNotificationService;
 
     @Override
-    public void sendNotification(OrderEntity orderEntity)   {
+    public void sendNotification(Order order)   {
 
-        boolean hasUnavailable = !getUnavailableProductName(orderEntity).isEmpty();
-        boolean allUnavailable = orderEntity.getOrderItems().stream().noneMatch(OrderItemEntity::isAvailable);
-        List<String> unavailableProductName = getUnavailableProductName(orderEntity);
+        boolean hasUnavailable = !getUnavailableProductName(order).isEmpty();
+        boolean allUnavailable = order.orderItems().stream().noneMatch(OrderItem::available);
+        List<String> unavailableProductName = getUnavailableProductName(order);
 
         if(hasUnavailable) {
 
-            emailNotificationService.sendOrderConfirmation(orderEntity.getUserEmail(), orderEntity.getOrderId());
-            webSocketNotificationService.notifyUser(orderEntity.getUserId(), orderEntity.getOrderId());
+            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.orderId());
+            webSocketNotificationService.notifyUser(order.userId(), order.orderId());
 
         } else if (allUnavailable) {
 
-            emailNotificationService.sendDeclineNotification(orderEntity.getUserEmail(), orderEntity.getOrderId(), unavailableProductName );
-            webSocketNotificationService.notifyUserDeclineOrder(orderEntity.getUserId(), orderEntity.getOrderId(), unavailableProductName);
+            emailNotificationService.sendDeclineNotification(order.userEmail(), order.orderId(), unavailableProductName );
+            webSocketNotificationService.notifyUserDeclineOrder(order.userId(), order.orderId(), unavailableProductName);
 
         } else {
 
-            emailNotificationService.sendOrderConfirmation(orderEntity.getUserEmail(), orderEntity.getOrderId(), unavailableProductName);
-            webSocketNotificationService.notifyUser(orderEntity.getUserId(), orderEntity.getOrderId(), unavailableProductName);
+            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.orderId(), unavailableProductName);
+            webSocketNotificationService.notifyUser(order.userId(), order.orderId(), unavailableProductName);
 
         }
     }
 
     @Override
-    public List<String> getUnavailableProductName (OrderEntity orderEntity) {
-        return orderEntity.getOrderItems()
+    public List<String> getUnavailableProductName (Order order) {
+        return order.orderItems()
                 .stream()
-                .filter(item -> !item.isAvailable())
-                .map(OrderItemEntity::getName)
+                .filter(item -> !item.available())
+                .map(OrderItem::name)
                 .toList();
     }
 

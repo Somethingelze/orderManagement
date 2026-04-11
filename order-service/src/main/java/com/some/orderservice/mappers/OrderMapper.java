@@ -1,12 +1,12 @@
 package com.some.orderservice.mappers;
 
+import com.some.commonlib.annotations.Loggable;
 import com.some.grpc.inventory.OrderItemDto;
 import com.some.grpc.inventory.ProductRequestDto;
-import com.some.orderservice.annotations.Loggable;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
-import com.some.orderservice.model.entities.Order;
-import com.some.orderservice.model.entities.OrderItem;
+import com.some.orderservice.model.entities.OrderEntity;
+import com.some.orderservice.model.entities.OrderItemEntity;
 import com.some.orderservice.model.event.OrderEvent;
 import org.mapstruct.*;
 
@@ -21,27 +21,34 @@ import java.util.UUID;
 @Loggable
 public interface OrderMapper {
 
-    OrderEvent toOrderEvent(Order order);
+    OrderEvent toOrderEvent(OrderEntity orderEntity);
 
-    @Mapping(target = "name", source = "productName")
-    @Mapping(target = "productId", expression = "java(UUID.fromString(source.getProductId()))")
+    @Mapping(target = "productName", source = "productName")
     @Mapping(target = "price", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2))")
     @Mapping(target = "sale", expression = "java(BigDecimal.valueOf(source.getSalePennies(), 2))")
     @Mapping(target = "totalPrice", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2).subtract(BigDecimal.valueOf(source.getSalePennies(), 2)))")
     @Mapping(target = "available", expression = "java(source.getIsAvailable())")
-    OrderItem toOrderItem (OrderItemDto source);
+    OrderItemEntity toOrderItemEntity (OrderItemDto source);
 
-    @Mapping(target = "orderId", source = "orderId")
     @Mapping(target = "orderItems", ignore = true)
     ProductRequestDto toProductRequestDto(OrderRequestDto orderRequestDto);
 
     @Mapping(target = "orderId", source = "id")
-    OrderResponseDto toOrderResponseDto(Order order);
+    OrderResponseDto toOrderResponseDto(OrderEntity orderEntity);
 
     @AfterMapping
     default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {
         if (source.getOrderItems() != null) {
             target.putAllOrderItems(source.getOrderItems());
+        }
+    }
+
+    @AfterMapping
+    default void linkOrderItems(@MappingTarget OrderEntity orderEntity) {
+        if (orderEntity.getOrderItems() != null) {
+            orderEntity.getOrderItems().forEach(item -> {
+                item.setOrderId(orderEntity);
+            });
         }
     }
 }

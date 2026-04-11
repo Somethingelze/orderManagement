@@ -1,6 +1,6 @@
 package com.some.notificationservice.service.impl;
 
-import com.some.notificationservice.annotations.Loggable;
+import com.some.commonlib.annotations.Loggable;
 import com.some.notificationservice.service.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

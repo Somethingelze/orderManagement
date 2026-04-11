@@ -1,6 +1,6 @@
 package com.some.orderservice.model.event;
 
-import com.some.orderservice.model.entities.OrderItem;
+import com.some.orderservice.model.entities.OrderItemEntity;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -13,6 +13,6 @@ public record OrderEvent(
         UUID orderId,
         UUID userId,
         String userEmail,
-        List<OrderItem> orderItems,
+        List<OrderItemEntity> orderItems,
         BigDecimal totalPrice
 ) {}

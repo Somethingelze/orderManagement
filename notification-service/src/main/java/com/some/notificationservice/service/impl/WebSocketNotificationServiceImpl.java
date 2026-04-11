@@ -1,6 +1,5 @@
 package com.some.notificationservice.service.impl;
 
-import com.some.notificationservice.annotations.Loggable;
 import com.some.notificationservice.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Loggable
 public class WebSocketNotificationServiceImpl extends WebSocketNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;

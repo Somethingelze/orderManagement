@@ -1,8 +1,7 @@
 package com.some.notificationservice.model.event;
 
-import com.some.notificationservice.model.entity.OrderItemEntity;
+import com.some.notificationservice.model.entity.OrderItem;
 import lombok.Builder;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,6 +13,6 @@ public record OrderEvent(
         UUID orderId,
         UUID userId,
         String userEmail,
-        List<OrderItemEntity> orderItems,
+        List<OrderItem> orderItems,
         BigDecimal totalPrice
 ) {}

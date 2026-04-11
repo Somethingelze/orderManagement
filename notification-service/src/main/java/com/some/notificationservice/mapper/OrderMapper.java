@@ -1,8 +1,8 @@
 package com.some.notificationservice.mapper;
 
-import com.some.notificationservice.annotations.Loggable;
-import com.some.notificationservice.model.entity.OrderEntity;
-import com.some.notificationservice.model.entity.OrderItemEntity;
+import com.some.commonlib.annotations.Loggable;
+import com.some.notificationservice.model.entity.Order;
+import com.some.notificationservice.model.entity.OrderItem;
 import com.some.notificationservice.model.event.OrderEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.*;
@@ -13,15 +13,12 @@ import org.mapstruct.*;
 public abstract class OrderMapper {
 
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "createdAt", ignore = true)
-    public abstract OrderEntity orderEventToOrderEntity(OrderEvent orderEvent);
+    public abstract Order orderEventToOrderEntity(OrderEvent orderEvent);
 
-    @AfterMapping
-    protected void linkOrderItems(@MappingTarget OrderEntity orderEntity) {
-        if (orderEntity.getOrderItems() != null) {
-            orderEntity.getOrderItems().forEach(item -> {
-                item.setOrder(orderEntity);
-            });
-        }
-    }
+//    @AfterMapping
+//    protected void linkOrderItems(@MappingTarget Order order) {
+//        if (order.orderItems() != null) {
+//            order.orderItems().forEach(OrderItem::orderId
+//        }
+//    }
 }
