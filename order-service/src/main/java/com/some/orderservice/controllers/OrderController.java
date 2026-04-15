@@ -19,14 +19,14 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/orders/create")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 @Loggable
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping()
+    @PostMapping("/create")
     public ResponseEntity<OrderResponseDto> createOrder (@Valid @RequestBody OrderRequestDto orderRequestDto)   {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.processOrder(orderRequestDto));
     }

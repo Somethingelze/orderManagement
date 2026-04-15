@@ -1,7 +1,8 @@
 package com.some.orderservice.services.impl;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.commonlib.dto.UserPrincipal;
+import com.some.commonlib.model.UserPrincipal;
+import com.some.commonlib.model.event.OrderEvent;
 import com.some.commonlib.util.JwtUtils;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.grpc.InventoryGrpcClient;
@@ -10,7 +11,6 @@ import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;
 import com.some.orderservice.model.entities.OrderItemEntity;
-import com.some.orderservice.model.event.OrderEvent;
 import com.some.orderservice.repositories.OrderItemRepository;
 import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
@@ -42,7 +42,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDto processOrder(OrderRequestDto orderRequestDto) {
-        orderRequestDto.setOrderId(UUID.randomUUID().toString());
         ProductRequestDto productRequestDto = orderMapper.toProductRequestDto(orderRequestDto);
 
         OrderEntity orderEntity = checkAvailability(productRequestDto);
@@ -67,19 +66,27 @@ public class OrderServiceImpl implements OrderService {
                 .getAuthentication()
                 .getPrincipal();
 
-        return orderRepository.save(
-                OrderEntity.builder()
+        OrderEntity order = OrderEntity.builder()
                 .id(UUID.randomUUID())
                 .userId(user.id())
                 .userEmail(user.email())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
-                .build());
+                .build();
+
+        orderItems.forEach(orderItemEntity -> {orderItemEntity.setOrder(order);});
+
+        return orderRepository.save(order);
     }
 
     @Override
     public void sendOrderEvent(OrderEntity orderEntity) {
+
+        orderEntity.getOrderItems().forEach(orderMapper::toOrderItem);
+
         OrderEvent orderEvent = orderMapper.toOrderEvent(orderEntity);
+
+        log.info("Sending event: {}", orderEvent);
         kafkaTemplate.send("order-event", orderEvent);
     }
 

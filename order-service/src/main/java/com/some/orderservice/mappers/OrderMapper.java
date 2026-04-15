@@ -1,13 +1,14 @@
 package com.some.orderservice.mappers;
 
 import com.some.commonlib.annotations.Loggable;
+import com.some.commonlib.model.entity.OrderItem;
+import com.some.commonlib.model.event.OrderEvent;
 import com.some.grpc.inventory.OrderItemDto;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;
 import com.some.orderservice.model.entities.OrderItemEntity;
-import com.some.orderservice.model.event.OrderEvent;
 import org.mapstruct.*;
 
 import java.math.BigDecimal;
@@ -36,6 +37,9 @@ public interface OrderMapper {
     @Mapping(target = "orderId", source = "id")
     OrderResponseDto toOrderResponseDto(OrderEntity orderEntity);
 
+    @Mapping(target = "orderId", source = "order.id")
+    OrderItem toOrderItem(OrderItemEntity orderItemEntity);
+
     @AfterMapping
     default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {
         if (source.getOrderItems() != null) {
@@ -47,7 +51,7 @@ public interface OrderMapper {
     default void linkOrderItems(@MappingTarget OrderEntity orderEntity) {
         if (orderEntity.getOrderItems() != null) {
             orderEntity.getOrderItems().forEach(item -> {
-                item.setOrderId(orderEntity);
+                item.setOrder(orderEntity);
             });
         }
     }

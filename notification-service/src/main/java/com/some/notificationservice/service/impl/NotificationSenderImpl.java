@@ -1,8 +1,8 @@
 package com.some.notificationservice.service.impl;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.notificationservice.model.entity.Order;
-import com.some.notificationservice.model.entity.OrderItem;
+import com.some.commonlib.model.entity.Order;
+import com.some.commonlib.model.entity.OrderItem;
 import com.some.notificationservice.service.EmailNotificationService;
 import com.some.notificationservice.service.NotificationSender;
 import lombok.RequiredArgsConstructor;
@@ -29,18 +29,18 @@ public class NotificationSenderImpl extends NotificationSender {
 
         if(hasUnavailable) {
 
-            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.orderId());
-            webSocketNotificationService.notifyUser(order.userId(), order.orderId());
+            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.id());
+            webSocketNotificationService.notifyUser(order.userId(), order.id());
 
         } else if (allUnavailable) {
 
-            emailNotificationService.sendDeclineNotification(order.userEmail(), order.orderId(), unavailableProductName );
-            webSocketNotificationService.notifyUserDeclineOrder(order.userId(), order.orderId(), unavailableProductName);
+            emailNotificationService.sendDeclineNotification(order.userEmail(), order.id(), unavailableProductName );
+            webSocketNotificationService.notifyUserDeclineOrder(order.userId(), order.id(), unavailableProductName);
 
         } else {
 
-            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.orderId(), unavailableProductName);
-            webSocketNotificationService.notifyUser(order.userId(), order.orderId(), unavailableProductName);
+            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.id(), unavailableProductName);
+            webSocketNotificationService.notifyUser(order.userId(), order.id(), unavailableProductName);
 
         }
     }
@@ -50,7 +50,7 @@ public class NotificationSenderImpl extends NotificationSender {
         return order.orderItems()
                 .stream()
                 .filter(item -> !item.available())
-                .map(OrderItem::name)
+                .map(OrderItem::productName)
                 .toList();
     }
 

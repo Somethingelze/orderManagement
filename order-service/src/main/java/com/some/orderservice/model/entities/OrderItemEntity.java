@@ -6,9 +6,9 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Builder
 @Entity
 @Table(name = "order_items")
+@Builder
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class OrderItemEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private OrderEntity orderId;
+    private OrderEntity order;
 
     @Column(nullable = false)
     private String productName;
@@ -39,5 +39,4 @@ public class OrderItemEntity {
 
     @Column
     private boolean available;
-
 }

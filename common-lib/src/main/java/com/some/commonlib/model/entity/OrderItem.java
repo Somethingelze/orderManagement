@@ -1,4 +1,4 @@
-package com.some.notificationservice.model.entity;
+package com.some.commonlib.model.entity;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ public record OrderItem (
         UUID id,
         UUID productId,
         UUID orderId,
-        String name,
+        String productName,
         BigDecimal price,
         BigDecimal sale,
         BigDecimal totalPrice,

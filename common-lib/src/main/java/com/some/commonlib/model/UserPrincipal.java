@@ -1,4 +1,4 @@
-package com.some.commonlib.dto;
+package com.some.commonlib.model;
 
 import java.util.UUID;
 

@@ -1,7 +1,7 @@
 package com.some.orderservice.filters;
 
 import com.some.commonlib.util.JwtUtils;
-import com.some.commonlib.dto.UserPrincipal;
+import com.some.commonlib.model.UserPrincipal;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

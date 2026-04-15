@@ -1,18 +1,14 @@
-package com.some.notificationservice.model.event;
-
-import com.some.notificationservice.model.entity.OrderItem;
-import lombok.Builder;
+package com.some.commonlib.model.entity;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-@Builder
-public record OrderEvent(
+public record Order(
         UUID id,
-        UUID orderId,
         UUID userId,
         String userEmail,
         List<OrderItem> orderItems,
         BigDecimal totalPrice
-) {}
+){
+}

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,13 +29,19 @@ public class OrderEntity {
     private String userEmail;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderItemEntity> orderItems;
+    @Builder.Default
+    private List<OrderItemEntity> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
-    BigDecimal totalPrice;
+    private BigDecimal totalPrice;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     @CreationTimestamp
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
+
+    public void addOrderItem(OrderItemEntity item) {
+        orderItems.add(item);
+        item.setOrder(this);
+    }
 }
