@@ -1,13 +1,9 @@
 services:
   discovery-server:
+    container_name: discovery-server
     build: ./discovery-server
     ports:
       - "8761:8761"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   users-db:
     image: postgres:15
@@ -121,5 +117,4 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
     depends_on:
-      discovery-server:
-        condition: service_healthy
+      - discovery-server

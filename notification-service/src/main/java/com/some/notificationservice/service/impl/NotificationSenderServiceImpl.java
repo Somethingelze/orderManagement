@@ -4,7 +4,8 @@ import com.some.commonlib.annotations.Loggable;
 import com.some.commonlib.model.entity.Order;
 import com.some.commonlib.model.entity.OrderItem;
 import com.some.notificationservice.service.EmailNotificationService;
-import com.some.notificationservice.service.NotificationSender;
+import com.some.notificationservice.service.NotificationSenderService;
+import com.some.notificationservice.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,33 +16,32 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Loggable
-public class NotificationSenderImpl extends NotificationSender {
+public class NotificationSenderServiceImpl implements NotificationSenderService {
 
     private final EmailNotificationService emailNotificationService;
-    private final WebSocketNotificationServiceImpl webSocketNotificationService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     @Override
     public void sendNotification(Order order)   {
 
-        boolean hasUnavailable = !getUnavailableProductName(order).isEmpty();
-        boolean allUnavailable = order.orderItems().stream().noneMatch(OrderItem::available);
+        log.info("Sending email notification for {}", order);
+
         List<String> unavailableProductName = getUnavailableProductName(order);
 
-        if(hasUnavailable) {
+        boolean anyUnavailable = !unavailableProductName.isEmpty();
+        boolean allUnavailable = order.orderItems().stream().noneMatch(OrderItem::available);
 
-            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.id());
-            webSocketNotificationService.notifyUser(order.userId(), order.id());
-
-        } else if (allUnavailable) {
-
-            emailNotificationService.sendDeclineNotification(order.userEmail(), order.id(), unavailableProductName );
+        if (allUnavailable) {
+            emailNotificationService.sendDeclineNotification(order.userEmail(), order.id(), unavailableProductName);
             webSocketNotificationService.notifyUserDeclineOrder(order.userId(), order.id(), unavailableProductName);
-
-        } else {
-
+        }
+        else if (anyUnavailable) {
             emailNotificationService.sendOrderConfirmation(order.userEmail(), order.id(), unavailableProductName);
             webSocketNotificationService.notifyUser(order.userId(), order.id(), unavailableProductName);
-
+        }
+        else {
+            emailNotificationService.sendOrderConfirmation(order.userEmail(), order.id());
+            webSocketNotificationService.notifyUser(order.userId(), order.id());
         }
     }
 

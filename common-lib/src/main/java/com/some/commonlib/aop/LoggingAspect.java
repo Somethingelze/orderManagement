@@ -13,7 +13,7 @@ import java.util.Arrays;
 @Slf4j
 public class LoggingAspect {
 
-    @Around("@annotation(com.some.*.annotations.Loggable) || @within(com.some.*.annotations.Loggable)")
+    @Around("@annotation(com.some.commonlib.annotations.Loggable) || @within(com.some.commonlib.annotations.Loggable)")
     public Object logEverything(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();

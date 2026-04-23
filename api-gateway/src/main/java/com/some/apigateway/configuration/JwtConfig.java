@@ -1,6 +1,6 @@
 package com.some.apigateway.configuration;
 
-import com.some.commonlib.util.JwtUtils;
+import com.some.commonlib.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,6 @@
 package com.some.inventoryservice.filters;
 
-import com.some.commonlib.util.JwtUtils;
+import com.some.commonlib.jwt.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,10 +1,10 @@
 package com.some.orderservice.model.dto.Request;
 
-import lombok.Data;
+import lombok.Builder;
 
 import java.util.Map;
 
-@Data
-public class OrderRequestDto  {
-        Map<String, Long> orderItems;
-}
+@Builder
+public record OrderRequestDto  (
+        Map<String, Long> orderItems
+){}

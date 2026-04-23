@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductEntity updateProduct(String id, ProductEntity productEntity) {
         return productRepository.findById(id)
                 .map(newProduct ->{
@@ -70,21 +72,15 @@ public class ProductServiceImpl implements ProductService {
             ProductEntity product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with id " + id + " not found"));
 
-            boolean isAvailable = requestedQuantity < product.getQuantity();
-            long priceInPennies = product.getPrice()
-                    .movePointRight(2)
-                    .longValue();
-            long saleInPennies = product.getSale()
-                    .movePointRight(2)
-                    .longValue();
-            long totalPrice = (priceInPennies - saleInPennies) * requestedQuantity;
+            boolean isAvailable = requestedQuantity <= product.getQuantity();
+            long totalPrice = (convertToPennies(product.getPrice()) - convertToPennies(product.getSale())) * requestedQuantity;
 
             OrderItemDto orderItem = OrderItemDto.newBuilder()
                     .setId(UUID.randomUUID().toString())
                     .setProductId(product.getId())
                     .setProductName(product.getName())
-                    .setPricePennies(priceInPennies)
-                    .setSalePennies(saleInPennies)
+                    .setPricePennies(convertToPennies(product.getPrice()))
+                    .setSalePennies(convertToPennies(product.getSale()))
                     .setTotalPrice(totalPrice)
                     .setIsAvailable(isAvailable)
                     .build();
@@ -99,6 +95,11 @@ public class ProductServiceImpl implements ProductService {
         return ProductResponseDto.newBuilder()
                 .addAllItems(orderItems)
                 .build();
+    }
+
+    public long convertToPennies(BigDecimal value) {
+        return value.movePointRight(2)
+                .longValue();
     }
 
 }

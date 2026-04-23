@@ -3,7 +3,7 @@ package com.some.orderservice.services.impl;
 import com.some.commonlib.annotations.Loggable;
 import com.some.commonlib.model.UserPrincipal;
 import com.some.commonlib.model.event.OrderEvent;
-import com.some.commonlib.util.JwtUtils;
+import com.some.commonlib.jwt.JwtUtils;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.grpc.InventoryGrpcClient;
 import com.some.orderservice.mappers.OrderMapper;
@@ -14,6 +14,7 @@ import com.some.orderservice.model.entities.OrderItemEntity;
 import com.some.orderservice.repositories.OrderItemRepository;
 import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -50,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderEntity checkAvailability(ProductRequestDto productRequestDto) {
 
         List<OrderItemEntity> orderItems = inventoryClient.checkAvailability(productRequestDto)
@@ -59,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         BigDecimal totalPrice = orderItems.stream()
+                .filter(OrderItemEntity::isAvailable)
                 .map(OrderItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

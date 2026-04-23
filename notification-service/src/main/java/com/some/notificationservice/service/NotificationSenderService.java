@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public abstract class NotificationSender {
-    public abstract void sendNotification(Order order);
+public interface NotificationSenderService {
+    void sendNotification(Order order);
 
-    public abstract List<String> getUnavailableProductName(Order order);
+    List<String> getUnavailableProductName(Order order);
 }

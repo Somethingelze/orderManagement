@@ -7,8 +7,9 @@ import com.some.authservice.model.entities.UserEntity;
 import com.some.authservice.model.enums.Role;
 import com.some.authservice.repositories.UserRepository;
 import com.some.authservice.services.AuthService;
-import com.some.commonlib.util.JwtUtils;
+import com.some.commonlib.jwt.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ public class AuthServiceImpl extends AuthService {
     private final AuthenticationManager authenticationManager;
 
     @Override
+    @Transactional
     public AuthenticationResponseDto register(RegistrationRequestDto dto) {
         UserEntity user = UserEntity.builder()
                 .username(dto.username())

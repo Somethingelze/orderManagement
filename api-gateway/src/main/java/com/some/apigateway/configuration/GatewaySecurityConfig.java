@@ -16,6 +16,7 @@ public class GatewaySecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/auth/v3/api-docs/**", "/order/v3/api-docs/**", "/inventory/v3/api-docs/**", "/swagger-ui/**", "/webjars/**").permitAll()
                         .anyExchange().permitAll()
                 )
                 .build();

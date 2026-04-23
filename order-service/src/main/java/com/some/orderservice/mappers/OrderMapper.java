@@ -42,8 +42,8 @@ public interface OrderMapper {
 
     @AfterMapping
     default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {
-        if (source.getOrderItems() != null) {
-            target.putAllOrderItems(source.getOrderItems());
+        if (source.orderItems() != null) {
+            target.putAllOrderItems(source.orderItems());
         }
     }
 

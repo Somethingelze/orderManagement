@@ -1,6 +1,6 @@
 package com.some.apigateway.filter;
 
-import com.some.commonlib.util.JwtUtils;
+import com.some.commonlib.jwt.JwtUtils;
 import io.jsonwebtoken.Claims;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

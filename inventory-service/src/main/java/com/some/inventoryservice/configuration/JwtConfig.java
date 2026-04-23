@@ -1,18 +1,15 @@
 package com.some.inventoryservice.configuration;
 
-import com.some.commonlib.util.JwtUtils;
-import org.springframework.beans.factory.annotation.Value;
+import com.some.commonlib.jwt.JwtUtils;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JwtConfig {
 
-    @Value("${security.jwt.secret_key}")
-    private String secret;
-
     @Bean
-    public JwtUtils jwtUtils() {
-        return new JwtUtils(secret);
+    public JwtUtils jwtUtils(JwtProperties properties) {
+        return new JwtUtils(properties.getSecretKey());
     }
 }

@@ -32,17 +32,17 @@ public class OrderController {
     }
 
     @GetMapping("/all")
-    public Page<OrderEntity> getAllOrders(Pageable pageable) {
-        return orderService.getAllOrders(pageable);
+    public ResponseEntity<Page<OrderEntity>> getAllOrders(Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrders(pageable));
     }
 
     @GetMapping("/products/{id}")
-    public Page<OrderItemEntity> getProductsByOrdertId(@PathVariable UUID id, Pageable pageable) {
-        return orderService.getAllOrderItemsByOrderId(pageable, id);
+    public ResponseEntity<Page<OrderItemEntity>> getProductsByOrderId(@PathVariable UUID id, Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrderItemsByOrderId(pageable, id));
     }
 
     @GetMapping("/users/{id}")
-    public Page<OrderEntity> getOrdersByUserId(@PathVariable UUID id, Pageable pageable) {
-        return orderService.getAllOrdersByUserId(pageable, id);
+    public ResponseEntity<Page<OrderEntity>> getOrdersByUserId(@PathVariable UUID id, Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrdersByUserId(pageable, id));
     }
 }
