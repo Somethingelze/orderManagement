@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductEntity getProductById(Long id) {
+    public ProductEntity getProductById(String id) {
         return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + "not found"));
     }
 
@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProduct(UUID id)    {
+    public void deleteProduct(String id)    {
         productRepository.deleteById(id);
     }
 
@@ -68,6 +68,7 @@ public class ProductServiceImpl implements ProductService {
         Map<String, Long> requestedProducts = request.getOrderItemsMap();
         List<OrderItemDto> orderItems = new ArrayList<>();
 
+        //TODO переделать в лист
         requestedProducts.forEach((id, requestedQuantity) -> {
             ProductEntity product = productRepository.findById(id)
                     .orElseThrow(() -> new ProductNotFoundException("Product with id " + id + " not found"));
@@ -77,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
 
             OrderItemDto orderItem = OrderItemDto.newBuilder()
                     .setId(UUID.randomUUID().toString())
-                    .setProductId(product.getId())
+                    .setProductId(product.getId().toString())
                     .setProductName(product.getName())
                     .setPricePennies(convertToPennies(product.getPrice()))
                     .setSalePennies(convertToPennies(product.getSale()))

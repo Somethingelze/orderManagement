@@ -110,9 +110,9 @@ class ProductServiceTest {
 
         @Test
         void getProductById_found_returnsEntity() {
-            Long id = 100L;
+            String id = UUID.randomUUID().toString();
             ProductEntity expected = new ProductEntity();
-            expected.setId(id.toString());
+            expected.setId(id);
 
             given(productRepository.findById(id)).willReturn(Optional.of(expected));
 

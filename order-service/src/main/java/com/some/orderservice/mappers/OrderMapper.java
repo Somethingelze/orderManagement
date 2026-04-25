@@ -1,7 +1,7 @@
 package com.some.orderservice.mappers;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.commonlib.model.entity.OrderItem;
+import com.some.commonlib.model.OrderItem;
 import com.some.commonlib.model.event.OrderEvent;
 import com.some.grpc.inventory.OrderItemDto;
 import com.some.grpc.inventory.ProductRequestDto;

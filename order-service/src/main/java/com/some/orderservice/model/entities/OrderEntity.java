@@ -1,8 +1,10 @@
 package com.some.orderservice.model.entities;
 
+import com.some.commonlib.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,9 +37,19 @@ public class OrderEntity {
     @Column(nullable = false)
     private BigDecimal totalPrice;
 
+    @Column(nullable = false)
+    private Status status;
+
+    @Column
+    private List<String> unavailableProducts;
+
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(nullable = false, updatable = false)
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
 
     public void addOrderItem(OrderItemEntity item) {

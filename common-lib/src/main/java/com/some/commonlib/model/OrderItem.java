@@ -1,4 +1,4 @@
-package com.some.commonlib.model.entity;
+package com.some.commonlib.model;
 
 import lombok.*;
 

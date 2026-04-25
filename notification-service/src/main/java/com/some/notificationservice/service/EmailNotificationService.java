@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public abstract class EmailNotificationService {
 
-    public abstract void sendOrderConfirmation(String to, UUID orderId);
+    public abstract void sendConfirmationEmail(String to, UUID orderId);
 
-    public abstract void sendOrderConfirmation(String to, UUID orderId, List<String> unavailableProductsId);
+    public abstract void sendConfirmationEmail(String to, UUID orderId, List<String> unavailableProducts);
 
-    public abstract void sendDeclineNotification(String to, UUID orderId, List<String> unavailableProductsNames);
+    public abstract void sendDeclineEmail(String to, UUID orderId, List<String> unavailableProducts);
 }

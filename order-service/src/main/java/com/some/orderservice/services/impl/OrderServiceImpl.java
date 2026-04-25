@@ -1,9 +1,9 @@
 package com.some.orderservice.services.impl;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.commonlib.model.UserPrincipal;
+import com.some.commonlib.model.OrderItem;
+import com.some.commonlib.model.enums.Status;
 import com.some.commonlib.model.event.OrderEvent;
-import com.some.commonlib.jwt.JwtUtils;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.grpc.InventoryGrpcClient;
 import com.some.orderservice.mappers.OrderMapper;
@@ -14,13 +14,13 @@ import com.some.orderservice.model.entities.OrderItemEntity;
 import com.some.orderservice.repositories.OrderItemRepository;
 import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
+import com.some.orderservice.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final JwtUtils jwtUtils;
+    private final UserService userService;
 
 
     @Override
@@ -65,32 +65,62 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-
         OrderEntity order = OrderEntity.builder()
                 .id(UUID.randomUUID())
-                .userId(user.id())
-                .userEmail(user.email())
+                .userId(userService.getUserId())
+                .userEmail(userService.getUSerEmail())
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
+                .status(setOrderStatus(orderItems))
                 .build();
 
-        orderItems.forEach(orderItemEntity -> {orderItemEntity.setOrder(order);});
+        orderItems.forEach(orderItemEntity -> {
+            orderItemEntity.setOrder(order);
+        });
 
         return orderRepository.save(order);
     }
 
     @Override
-    public void sendOrderEvent(OrderEntity orderEntity) {
+    public Status setOrderStatus(List<OrderItemEntity> orderItems) {
+        if (orderItems.stream().noneMatch(OrderItemEntity::isAvailable)) {
+            return Status.UNAVAILABLE;
+        } else if (orderItems.stream().anyMatch(OrderItemEntity::isAvailable)) {
+            return Status.PARTIALLY_UNAVAILABLE;
+        } else
+            return Status.UNAVAILABLE;
+    }
 
-        orderEntity.getOrderItems().forEach(orderMapper::toOrderItem);
+    @Override
+    public List<String> getUnavailableProductsName(OrderEntity orderEntity) {
+        return orderEntity.getOrderItems()
+                .stream()
+                .filter(item -> !item.isAvailable())
+                .map(OrderItemEntity::getProductName)
+                .toList();
+    }
 
-        OrderEvent orderEvent = orderMapper.toOrderEvent(orderEntity);
+    @Override
+    public OrderEvent sendOrderEvent(OrderEntity orderEntity) {
+        List<String> unavailableProductsName = getUnavailableProductsName(orderEntity);
+        List<OrderItem> orderItems = orderEntity.getOrderItems().stream()
+                .map(orderMapper::toOrderItem)
+                .toList();
+
+        OrderEvent orderEvent = OrderEvent.builder()
+                .id(orderEntity.getId())
+                .userId(orderEntity.getUserId())
+                .userEmail(orderEntity.getUserEmail())
+                .orderItems(orderItems)
+                .totalPrice(orderEntity.getTotalPrice())
+                .status(orderEntity.getStatus())
+                .unavailableProducts(unavailableProductsName)
+                .build();
+
+        kafkaTemplate.send("order-event", orderEvent);
 
         log.info("Sending event: {}", orderEvent);
-        kafkaTemplate.send("order-event", orderEvent);
+        return orderEvent;
     }
 
     @Override
@@ -104,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderEntity> getAllOrdersByUserId(Pageable pageable, UUID userId)  {
+    public Page<OrderEntity> getAllOrdersByUserId(Pageable pageable, UUID userId) {
         return orderRepository.findAllOrdersByUserId(userId, pageable);
     }
 }

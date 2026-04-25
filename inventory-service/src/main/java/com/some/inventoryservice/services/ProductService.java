@@ -14,13 +14,13 @@ public interface ProductService {
 
     ProductEntity createProduct(ProductEntity productEntity);
 
-    ProductEntity getProductById(Long id);
+    ProductEntity getProductById(String id);
 
     Page<ProductEntity> getAllProducts(Pageable pageable);
 
     ProductEntity updateProduct(String id, ProductEntity productEntity);
 
-    void deleteProduct(UUID id);
+    void deleteProduct(String id);
 
     ProductResponseDto collectItems(ProductRequestDto request);
 }

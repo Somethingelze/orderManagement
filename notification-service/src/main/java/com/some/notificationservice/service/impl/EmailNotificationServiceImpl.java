@@ -21,7 +21,7 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
     private final JavaMailSender mailSender;
 
     @Override
-    public void sendOrderConfirmation(String to, UUID orderId) {
+    public void sendConfirmationEmail(String to, UUID orderId) {
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -38,16 +38,16 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
     }
 
     @Override
-    public void sendOrderConfirmation(String to, UUID orderId, List<String> unavailableProductsNames) {
+    public void sendConfirmationEmail(String to, UUID orderId, List<String> unavailableProducts) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject("Заказ принят частично");
             message.setText("Заказ № " + orderId + " принят частично. Следующие продукты закончились на складе: "
-                    + unavailableProductsNames + ". Пожалуйста, выберите замены.");
+                    + unavailableProducts + ". Пожалуйста, выберите замены.");
             mailSender.send(message);
 
-            log.info("Email sent for partial order {} without products: {} ", orderId, unavailableProductsNames);
+            log.info("Email sent for partial order {} without products: {} ", orderId, unavailableProducts);
 
         } catch (Exception e) {
             log.error("Failed to send email for order {}", orderId, e);
@@ -55,17 +55,17 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
     }
 
     @Override
-    public void sendDeclineNotification(String to, UUID orderId, List<String> unavailableProductsNames) {
+    public void sendDeclineEmail(String to, UUID orderId, List<String> unavailableProducts) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject("Заказ отклонен по причине отсутствия всех товаров на складе.");
             message.setText("Заказ № " + orderId + " отклонен по причине отсутствия следующих товаров на складе: "
-                    + unavailableProductsNames + ". Пожалуйста, выберите доступные товары." );
+                    + unavailableProducts + ". Пожалуйста, выберите доступные товары." );
 
             mailSender.send(message);
 
-            log.info("Email sent for decline order {} without products: {} ", orderId, unavailableProductsNames);
+            log.info("Email sent for decline order {} without products: {} ", orderId, unavailableProducts);
 
         } catch (Exception e)   {
             log.error("Failed to send email for order {}", orderId, e);
