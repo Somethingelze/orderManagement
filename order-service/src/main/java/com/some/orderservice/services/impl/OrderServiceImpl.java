@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final OutboxService outboxService;
 
     @Override
+    @Transactional
     public OrderResponseDto processOrder(OrderRequestDto orderRequestDto) {
         log.info("Received Order Request {}",  orderRequestDto);
 
@@ -73,7 +75,6 @@ public class OrderServiceImpl implements OrderService {
 
         } catch (Exception e) {
             cancelConfirmation(confirmedOrderId, orderEntity);
-            throw new RuntimeException(e);
         }
 
         log.info("Order confirm products for {}", orderEntity);
