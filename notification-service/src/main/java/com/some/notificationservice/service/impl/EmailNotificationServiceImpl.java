@@ -28,7 +28,7 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
             message.setTo(to);
             message.setSubject("Заказ принят");
             message.setText("Ваш заказ № " + orderId + " успешно обработан и передан в доставку");
-            mailSender.send(message);
+//            mailSender.send(message);
 
             log.info("Email sent for order {}", orderId);
 
@@ -45,7 +45,7 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
             message.setSubject("Заказ принят частично");
             message.setText("Заказ № " + orderId + " принят частично. Следующие продукты закончились на складе: "
                     + unavailableProducts + ". Пожалуйста, выберите замены.");
-            mailSender.send(message);
+//            mailSender.send(message);
 
             log.info("Email sent for partial order {} without products: {} ", orderId, unavailableProducts);
 
@@ -63,7 +63,7 @@ public class EmailNotificationServiceImpl extends EmailNotificationService {
             message.setText("Заказ № " + orderId + " отклонен по причине отсутствия следующих товаров на складе: "
                     + unavailableProducts + ". Пожалуйста, выберите доступные товары." );
 
-            mailSender.send(message);
+//            mailSender.send(message);
 
             log.info("Email sent for decline order {} without products: {} ", orderId, unavailableProducts);
 

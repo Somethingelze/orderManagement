@@ -19,6 +19,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class OrderEntity {
 
     @Id
@@ -34,20 +35,19 @@ public class OrderEntity {
     @Builder.Default
     private List<OrderItemEntity> orderItems = new ArrayList<>();
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal totalPrice;
 
-    @Column(nullable = false)
+    @Column
     private Status status;
 
     @Column
-    private List<String> unavailableProducts;
+    private List<String> unavailableProductsIds;
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, updatable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 

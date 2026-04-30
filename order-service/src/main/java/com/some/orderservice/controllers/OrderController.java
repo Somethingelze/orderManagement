@@ -1,6 +1,7 @@
 package com.some.orderservice.controllers;
 
 import com.some.commonlib.annotations.Loggable;
+import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;

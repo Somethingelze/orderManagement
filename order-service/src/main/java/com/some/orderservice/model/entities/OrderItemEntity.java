@@ -13,30 +13,28 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = "order")
 public class OrderItemEntity {
 
     @Id
     private UUID id;
 
-    @Column(nullable = false)
+    @Column
     private UUID productId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
 
-    @Column(nullable = false)
+    @Column
     private String productName;
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal price;
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal sale;
 
-    @Column(nullable = false)
-    private BigDecimal totalPrice;
-
     @Column
-    private boolean available;
+    private BigDecimal totalPrice;
 }

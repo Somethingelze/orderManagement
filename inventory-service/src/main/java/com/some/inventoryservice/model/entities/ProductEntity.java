@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -13,23 +14,26 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+    private UUID id;
 
     @Column
-    String name;
+    private String name;
 
     @Column
-    Long quantity;
+    private Long quantity;
 
     @Column
-    BigDecimal price;
+    private BigDecimal price;
 
     @Column
-    BigDecimal sale;
+    private BigDecimal sale;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReservedItemEntity> reservedItemEntities;
+
 }
 

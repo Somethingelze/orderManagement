@@ -1,10 +1,8 @@
 package com.some.orderservice.services.impl;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.commonlib.model.OrderItem;
 import com.some.commonlib.model.enums.Status;
-import com.some.commonlib.model.event.OrderEvent;
-import com.some.grpc.inventory.ProductRequestDto;
+import com.some.grpc.inventory.*;
 import com.some.orderservice.grpc.InventoryGrpcClient;
 import com.some.orderservice.mappers.OrderMapper;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
@@ -14,13 +12,12 @@ import com.some.orderservice.model.entities.OrderItemEntity;
 import com.some.orderservice.repositories.OrderItemRepository;
 import com.some.orderservice.repositories.OrderRepository;
 import com.some.orderservice.services.OrderService;
+import com.some.orderservice.services.OutboxService;
 import com.some.orderservice.services.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,94 +31,118 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService {
 
     private final InventoryGrpcClient inventoryClient;
-    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
     private final OrderMapper orderMapper;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserService userService;
-
+    private final OutboxService outboxService;
 
     @Override
     public OrderResponseDto processOrder(OrderRequestDto orderRequestDto) {
-        ProductRequestDto productRequestDto = orderMapper.toProductRequestDto(orderRequestDto);
+        log.info("Received Order Request {}",  orderRequestDto);
 
-        OrderEntity orderEntity = checkAvailability(productRequestDto);
-        sendOrderEvent(orderEntity);
+        OrderEntity orderEntity = OrderEntity.builder()
+                .id(UUID.randomUUID())
+                .userId(userService.getUserId())
+                .userEmail(userService.getUSerEmail())
+                .status(Status.CREATED)
+                .build();
+        outboxService.saveAndOutbox(orderEntity);
+        log.info("Order Created for {}", orderEntity.toString());
+
+        ConfirmedOrderId confirmedOrderId = ConfirmedOrderId.newBuilder()
+                .setId(orderEntity.getId().toString())
+                .build();
+        try {
+        ProductRequestDto productRequestDto = ProductRequestDto.newBuilder()
+                .setOrderId(String.valueOf(orderEntity.getId()))
+                .putAllOrderItems(orderRequestDto.orderItems())
+                .build();
+
+        AvailabilityProductsDto  availabilityProductsDto = checkAvailability(productRequestDto, orderEntity);
+
+         if (availabilityProductsDto.getAvailableProductsMap().isEmpty()) {
+             return OrderResponseDto.builder()
+                     .orderId(orderEntity.getId())
+                     .build();
+         }
+
+        collectOrder(availabilityProductsDto, orderEntity);
+
+        confirmOrder(confirmedOrderId, orderEntity);
+
+        } catch (Exception e) {
+            cancelConfirmation(confirmedOrderId, orderEntity);
+            throw new RuntimeException(e);
+        }
+
+        log.info("Order confirm products for {}", orderEntity);
         return orderMapper.toOrderResponseDto(orderEntity);
     }
 
-    @Override
-    @Transactional
-    public OrderEntity checkAvailability(ProductRequestDto productRequestDto) {
+    public AvailabilityProductsDto checkAvailability(ProductRequestDto productRequestDto, OrderEntity orderEntity)  {
+        AvailabilityProductsDto availabilityProductsDto = inventoryClient.checkAvailability(productRequestDto);
 
-        List<OrderItemEntity> orderItems = inventoryClient.checkAvailability(productRequestDto)
-                .getItemsList()
+        if (availabilityProductsDto.getAvailableProductsMap().isEmpty()) {
+            orderEntity.setStatus(Status.REJECTED);
+            orderEntity.setUnavailableProductsIds(availabilityProductsDto.getUnavailableProductsList());
+            outboxService.saveAndOutbox(orderEntity);
+            log.info("Order Rejected for {}. Unavailable products: {}", orderEntity.getId(), orderEntity.getUnavailableProductsIds());
+            return AvailabilityProductsDto.newBuilder()
+                    .setIsAvailable(false)
+                    .addAllUnavailableProducts(availabilityProductsDto.getUnavailableProductsList())
+                    .build();
+        }
+
+        if (!availabilityProductsDto.getIsAvailable()) {
+            orderEntity.setStatus(Status.PARTIAL_RESERVED);
+            orderEntity.setUnavailableProductsIds(availabilityProductsDto.getUnavailableProductsList());
+            log.info("Order Partial reserved for {}. Unavailable products: {}. Available products: {}",
+                    orderEntity.getId(), availabilityProductsDto.getUnavailableProductsList(), availabilityProductsDto.getAvailableProductsMap());
+            outboxService.saveAndOutbox(orderEntity);
+        } else {
+            orderEntity.setStatus(Status.RESERVED);
+            log.info("Order {} successfully reserved for products {}", orderEntity.getId(), availabilityProductsDto.getAvailableProductsMap());
+            outboxService.saveAndOutbox(orderEntity);
+        }
+        log.info("Order check availability for {}", orderEntity);
+        return availabilityProductsDto;
+    }
+
+    public void collectOrder(AvailabilityProductsDto availabilityProductsDto, OrderEntity orderEntity)    {
+        List<OrderItemEntity> orderItems = inventoryClient.collectOrder(availabilityProductsDto).getItemsList()
                 .stream()
                 .map(orderMapper::toOrderItemEntity)
                 .toList();
 
         BigDecimal totalPrice = orderItems.stream()
-                .filter(OrderItemEntity::isAvailable)
                 .map(OrderItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        OrderEntity order = OrderEntity.builder()
-                .id(UUID.randomUUID())
-                .userId(userService.getUserId())
-                .userEmail(userService.getUSerEmail())
-                .orderItems(orderItems)
-                .totalPrice(totalPrice)
-                .status(setOrderStatus(orderItems))
-                .build();
+        orderEntity.setOrderItems(orderItems);
+        orderEntity.setTotalPrice(totalPrice);
+        orderEntity.setStatus(Status.COLLECTED);
 
         orderItems.forEach(orderItemEntity -> {
-            orderItemEntity.setOrder(order);
+            orderItemEntity.setOrder(orderEntity);
         });
 
-        return orderRepository.save(order);
+        outboxService.saveAndOutbox(orderEntity);
+        log.info("Order collect products for {}", orderEntity);
     }
 
-    @Override
-    public Status setOrderStatus(List<OrderItemEntity> orderItems) {
-        if (orderItems.stream().noneMatch(OrderItemEntity::isAvailable)) {
-            return Status.UNAVAILABLE;
-        } else if (orderItems.stream().anyMatch(OrderItemEntity::isAvailable)) {
-            return Status.PARTIALLY_UNAVAILABLE;
-        } else
-            return Status.UNAVAILABLE;
+    public void confirmOrder(ConfirmedOrderId confirmedOrderId, OrderEntity orderEntity) {
+        inventoryClient.confirmOrder(confirmedOrderId);
+        orderEntity.setStatus(Status.SUCCESS);
+        outboxService.saveAndOutbox(orderEntity);
     }
 
-    @Override
-    public List<String> getUnavailableProductsName(OrderEntity orderEntity) {
-        return orderEntity.getOrderItems()
-                .stream()
-                .filter(item -> !item.isAvailable())
-                .map(OrderItemEntity::getProductName)
-                .toList();
+    public void cancelConfirmation(ConfirmedOrderId confirmedOrderId, OrderEntity orderEntity) {
+        inventoryClient.cancelConfirmation(confirmedOrderId);
+        orderEntity.setStatus(Status.ERROR);
+        outboxService.saveAndOutbox(orderEntity);
     }
 
-    @Override
-    public OrderEvent sendOrderEvent(OrderEntity orderEntity) {
-        List<String> unavailableProductsName = getUnavailableProductsName(orderEntity);
-        List<OrderItem> orderItems = orderEntity.getOrderItems().stream()
-                .map(orderMapper::toOrderItem)
-                .toList();
-
-        OrderEvent orderEvent = OrderEvent.builder()
-                .id(orderEntity.getId())
-                .userId(orderEntity.getUserId())
-                .userEmail(orderEntity.getUserEmail())
-                .orderItems(orderItems)
-                .totalPrice(orderEntity.getTotalPrice())
-                .status(orderEntity.getStatus())
-                .unavailableProducts(unavailableProductsName)
-                .build();
-
-        kafkaTemplate.send("order-event", orderEvent);
-
-        log.info("Sending event: {}", orderEvent);
-        return orderEvent;
-    }
 
     @Override
     public Page<OrderEntity> getAllOrders(Pageable pageable) {

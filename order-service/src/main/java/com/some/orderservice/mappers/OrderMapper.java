@@ -22,23 +22,24 @@ import java.util.UUID;
 @Loggable
 public interface OrderMapper {
 
+    @Mapping(target = "unavailableProducts", source = "unavailableProductsIds")
+    @Mapping(target = "orderId", source = "id")
+    @Mapping(target = "eventId", expression = "java(UUID.randomUUID())")
     OrderEvent toOrderEvent(OrderEntity orderEntity);
 
     @Mapping(target = "productName", source = "productName")
     @Mapping(target = "price", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2))")
     @Mapping(target = "sale", expression = "java(BigDecimal.valueOf(source.getSalePennies(), 2))")
-    @Mapping(target = "totalPrice", expression = "java(BigDecimal.valueOf(source.getPricePennies(), 2).subtract(BigDecimal.valueOf(source.getSalePennies(), 2)))")
-    @Mapping(target = "available", expression = "java(source.getIsAvailable())")
+    @Mapping(target = "totalPrice", expression = "java(BigDecimal.valueOf(source.getTotalPrice(), 2))")
     OrderItemEntity toOrderItemEntity (OrderItemDto source);
-
-    @Mapping(target = "orderItems", ignore = true)
-    ProductRequestDto toProductRequestDto(OrderRequestDto orderRequestDto);
 
     @Mapping(target = "orderId", source = "id")
     OrderResponseDto toOrderResponseDto(OrderEntity orderEntity);
 
     @Mapping(target = "orderId", source = "order.id")
     OrderItem toOrderItem(OrderItemEntity orderItemEntity);
+
+    OrderItemDto toOrderItemDto(OrderItemEntity orderItemEntity);
 
     @AfterMapping
     default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {

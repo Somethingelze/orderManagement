@@ -26,7 +26,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductEntity> getProductById(@PathVariable String id) {
+    public ResponseEntity<ProductEntity> getProductById(@PathVariable UUID id) {
         return ResponseEntity.ok().body(productService.getProductById(id));
     }
 
@@ -36,12 +36,12 @@ public class ProductController {
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<ProductEntity> updateProduct(@PathVariable String id, @RequestBody ProductEntity productEntity) {
+    public ResponseEntity<ProductEntity> updateProduct(@PathVariable UUID id, @RequestBody ProductEntity productEntity) {
         return ResponseEntity.ok().body(productService.updateProduct(id, productEntity));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }

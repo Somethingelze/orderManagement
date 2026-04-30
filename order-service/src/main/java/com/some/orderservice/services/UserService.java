@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public abstract class UserService {
+public interface UserService {
 
     public abstract UUID getUserId();
 

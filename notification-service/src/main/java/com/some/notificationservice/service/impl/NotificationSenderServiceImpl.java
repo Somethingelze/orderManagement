@@ -21,17 +21,21 @@ public class NotificationSenderServiceImpl implements NotificationSenderService 
 
     @Override
     public void sendNotification(OrderEvent orderEvent)   {
-        if (orderEvent.status().equals(Status.UNAVAILABLE)) {
-            emailNotificationService.sendDeclineEmail(orderEvent.userEmail(), orderEvent.id(), orderEvent.unavailableProducts());
-            webSocketNotificationService.notifyUserDeclineOrder(orderEvent.userId(), orderEvent.id(), orderEvent.unavailableProducts());
-        }
-        else if (orderEvent.status().equals(Status.PARTIALLY_UNAVAILABLE)) {
-            emailNotificationService.sendConfirmationEmail(orderEvent.userEmail(), orderEvent.id(), orderEvent.unavailableProducts());
-            webSocketNotificationService.notifyUserConfirmOrder(orderEvent.userId(), orderEvent.id(), orderEvent.unavailableProducts());
-        }
-        else {
-            emailNotificationService.sendConfirmationEmail(orderEvent.userEmail(), orderEvent.id());
-            webSocketNotificationService.notifyUserConfirmOrder(orderEvent.userId(), orderEvent.id());
+        if (Status.REJECTED.equals(orderEvent.status())) {
+            emailNotificationService.sendDeclineEmail(orderEvent.userEmail(), orderEvent.orderId(), orderEvent.unavailableProducts());
+            webSocketNotificationService.notifyUserDeclineOrder(orderEvent.userId(), orderEvent.orderId(), orderEvent.unavailableProducts());
+        } else if (Status.PARTIAL_RESERVED.equals(orderEvent.status())) {
+            emailNotificationService.sendConfirmationEmail(orderEvent.userEmail(), orderEvent.orderId(), orderEvent.unavailableProducts());
+            webSocketNotificationService.notifyUserConfirmOrder(orderEvent.userId(), orderEvent.orderId(), orderEvent.unavailableProducts());
+        } else if (Status.CREATED.equals(orderEvent.status()))  {
+            emailNotificationService.sendConfirmationEmail(orderEvent.userEmail(), orderEvent.orderId());
+            webSocketNotificationService.notifyUserConfirmOrder(orderEvent.userId(), orderEvent.orderId());
+        } else if (Status.SUCCESS.equals(orderEvent.status())) {
+            
+        } else if (Status.COLLECTED.equals(orderEvent.status())) {
+            
+        } else if (Status.RESERVED.equals(orderEvent.status())) {
+            
         }
     }
 }

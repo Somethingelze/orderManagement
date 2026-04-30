@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class UserServiceImpl extends UserService {
+public class UserServiceImpl implements UserService {
 
     @Override
     public UUID getUserId() {
