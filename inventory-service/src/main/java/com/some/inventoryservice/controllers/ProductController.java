@@ -1,10 +1,12 @@
 package com.some.inventoryservice.controllers;
 
+import com.some.commonlib.annotations.Loggable;
 import com.some.inventoryservice.model.entities.ProductEntity;
 import com.some.inventoryservice.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,33 +15,34 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
+@Loggable
 public class ProductController {
 
     private final ProductService productService;
 
     @GetMapping
-    public Page<ProductEntity> getAllProducts(Pageable pageable) {
-        return productService.getAllProducts(pageable);
+    public ResponseEntity<Page<ProductEntity>> getAllProducts(Pageable pageable) {
+        return ResponseEntity.ok().body(productService.getAllProducts(pageable));
     }
 
     @GetMapping("/{id}")
-    public ProductEntity getProductById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public ResponseEntity<ProductEntity> getProductById(@PathVariable String id) {
+        return ResponseEntity.ok().body(productService.getProductById(id));
     }
 
     @PostMapping
-    public ProductEntity createProduct(@RequestBody ProductEntity productEntity) {
-        return productService.createProduct(productEntity);
+    public ResponseEntity<ProductEntity> createProduct(@RequestBody ProductEntity productEntity) {
+        return ResponseEntity.ok().body(productService.createProduct(productEntity));
     }
 
     @PostMapping("/{id}")
-    public ProductEntity updateProduct(@PathVariable String id, @RequestBody ProductEntity productEntity) {
-        return productService.updateProduct(id, productEntity);
+    public ResponseEntity<ProductEntity> updateProduct(@PathVariable String id, @RequestBody ProductEntity productEntity) {
+        return ResponseEntity.ok().body(productService.updateProduct(id, productEntity));
     }
 
-    @DeleteMapping("/id")
-    public void deleteProduct(@PathVariable UUID id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
         productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
-
 }

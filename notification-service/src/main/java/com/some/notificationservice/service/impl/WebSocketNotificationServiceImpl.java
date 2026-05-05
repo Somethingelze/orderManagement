@@ -17,7 +17,7 @@ public class WebSocketNotificationServiceImpl extends WebSocketNotificationServi
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void notifyUser(UUID userId, UUID orderId) {
+    public void notifyUserConfirmOrder(UUID userId, UUID orderId) {
 
         messagingTemplate.convertAndSendToUser(
             userId.toString(),
@@ -29,24 +29,24 @@ public class WebSocketNotificationServiceImpl extends WebSocketNotificationServi
     }
 
     @Override
-    public void notifyUser(UUID userId, UUID orderId, List<String> unavailableProductsNames)  {
+    public void notifyUserConfirmOrder(UUID userId, UUID orderId, List<String> unavailableProducts)  {
 
         messagingTemplate.convertAndSendToUser(
                 userId.toString(),
                 "/queue/orders",
-                "Заказ № " + orderId + " принят частично. Следующие продукты закончились на складе: " + unavailableProductsNames
+                "Заказ № " + orderId + " принят частично. Следующие продукты закончились на складе: " + unavailableProducts
         );
-        log.info("WebSocket sent for partial order {} without products: {} ", orderId, unavailableProductsNames);
+        log.info("WebSocket sent for partial order {} without products: {} ", orderId, unavailableProducts);
     }
 
     @Override
-    public void notifyUserDeclineOrder(UUID userId, UUID orderId, List<String> unavailableProductsNames)    {
+    public void notifyUserDeclineOrder(UUID userId, UUID orderId, List<String> unavailableProducts)    {
         messagingTemplate.convertAndSendToUser(
                 userId.toString(),
                 "/queue/orders",
-                "Заказ № " + orderId + " отменен. Следующие продукты закончились на складе: " + unavailableProductsNames
+                "Заказ № " + orderId + " отменен. Следующие продукты закончились на складе: " + unavailableProducts
                 );
-        log.info("WebSocket sent for decline order {} without products: {} ", orderId, unavailableProductsNames);
+        log.info("WebSocket sent for decline order {} without products: {} ", orderId, unavailableProducts);
 
     }
 }

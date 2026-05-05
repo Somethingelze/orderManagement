@@ -1,30 +1,39 @@
 services:
-  order-db:
+  discovery-server:
+    container_name: discovery-server
+    build: ./discovery-server
+    ports:
+      - "8761:8761"
+
+  users-db:
     image: postgres:15
+    container_name: users-db
     ports:
       - "5431:5432"
     environment:
-      POSTGRES_DB: order_db
-      POSTGRES_USER: some
-      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: users_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
-  inventory-db:
+  products-db:
     image: postgres:15
+    container_name: products-db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: inventory_db
-      POSTGRES_USER: some
-      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: products_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
-  notification-db:
+  orders-db:
     image: postgres:15
+    container_name: orders-db
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: notification_db
-      POSTGRES_USER: some
-      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -35,30 +44,41 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
-
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093'
-
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
-
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
-
       CLUSTER_ID: '5L6g3nShT-eMCtK--X86sw'
-      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.image.loader.MetadataLoader=WARN"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_LOGGERS: "org.apache.kafka.image.loader.MetadataLoader=WARN,org.apache.kafka.queue.KafkaEventQueue=WARN,kafka.server.MetadataLoader=WARN"
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8083:8083"
+    env_file:
+      - auth-service/.env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://users-db:5432/users_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
+      - users-db
 
   inventory-service:
     build: ./inventory-service
     ports:
-      - "9090:9090"
       - "8081:8081"
+      - "9090:9090"
     env_file:
       - inventory-service/.env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://products-db:5432/products_db
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
     depends_on:
-      - inventory-db
+      - discovery-server
+      - products-db
 
   order-service:
     build: ./order-service
@@ -66,8 +86,11 @@ services:
       - "8080:8080"
     env_file:
       - order-service/.env
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
-      - order-db
+      - discovery-server
       - kafka
       - inventory-service
 
@@ -77,6 +100,21 @@ services:
       - "8082:8082"
     env_file:
       - notification-service/.env
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
-      - notification-db
+      - discovery-server
+      - orders-db
       - kafka
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8084:8084"
+    env_file:
+      - api-gateway/.env
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - discovery-server
