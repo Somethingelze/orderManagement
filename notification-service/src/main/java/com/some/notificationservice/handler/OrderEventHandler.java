@@ -19,12 +19,9 @@ public class OrderEventHandler {
     private final NotificationSenderService notificationSenderService;
     private final NotificationInboxRepository notificationInboxRepository;
 
-    @KafkaListener(
-            topics = "#{@orderConsumerProperties.topic()}",
-            groupId = "#{@orderConsumerProperties.groupId()}"
-    )
+    @KafkaListener(topics = "${order-events.topic}", groupId = "${order-events.group-id}")
     public void receiveOrderEvent(OrderEvent event) {
-        log.info("Processing event: {} for order: {}", event.eventId(), event.orderId());
+        log.info("Received event: {} for order: {}", event.eventId(), event.orderId());
         if (notificationInboxRepository.existsById(event.eventId())) {
             log.warn("Duplicate message detected: {}. Skipping.", event.eventId());
             return;

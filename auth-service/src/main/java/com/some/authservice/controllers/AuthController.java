@@ -28,13 +28,13 @@ public class AuthController {
         }
 
         AuthenticationResponseDto response = authService.register(registrationDto);
-        log.info("Успешно зарегистрирован пользователь: {}", registrationDto.username());
+        log.debug("Успешно зарегистрирован пользователь: {}", registrationDto.username());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponseDto> login(@RequestBody LoginRequestDto request) {
-        log.info("Запрос на вход пользователя: {}", request.username());
+        log.debug("Запрос на вход пользователя: {}", request.username());
         return ResponseEntity.ok(authService.authenticate(request));
     }
 

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -27,13 +26,13 @@ public class ProductEntity {
     private Long quantity;
 
     @Column
+    private Long reservedQuantity;
+
+    @Column
     private BigDecimal price;
 
     @Column
     private BigDecimal sale;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ReservedItemEntity> reservedItemEntities;
 
 }
 

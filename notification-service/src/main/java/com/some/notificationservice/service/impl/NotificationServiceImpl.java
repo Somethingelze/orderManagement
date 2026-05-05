@@ -42,7 +42,7 @@ public class NotificationServiceImpl implements NotificationService {
                     "/queue/orders",
                     message
             );
-            log.info("WebSocket message sent to user {}", userId);
+            log.debug("WebSocket message sent to user {}", userId);
         } catch (Exception e) {
             log.error("Failed to send WebSocket message to user {}: {}", userId, e.getMessage());
         }

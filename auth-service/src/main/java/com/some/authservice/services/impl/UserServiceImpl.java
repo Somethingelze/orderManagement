@@ -30,13 +30,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDto> getAllUsers() {
-        log.info("Getting all users");
+        log.debug("Getting all users");
         return userRepository.findAll().stream().map(userMapper::toUserResponseDto).toList();
     }
 
     @Override
     public UserResponseDto getUserById(UUID id) {
-        log.info("Getting user by id: {}", id);
+        log.debug("Getting user by id: {}", id);
         UserEntity user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return userMapper.toUserResponseDto(user);
     }
@@ -44,6 +44,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
+        log.debug("Creating user with email: {}", userRequestDto.email());
         UserEntity userEntity = UserEntity.builder()
                 .username(userRequestDto.username())
                 .password(passwordEncoder.encode(userRequestDto.password()))
@@ -57,12 +58,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto updateUser(UUID id, UserRequestDto userRequestDto) {
-        log.info("Start updating user by id: {}", id);
+        log.debug("Start updating user by id: {}", id);
 
         return userRepository.findById(id).map(user -> {
             user.setUsername(userRequestDto.username());
             user.setEmail(userRequestDto.email());
-            log.info("User with id: {} was updated", id);
+            log.debug("User with id: {} was updated", id);
             return userMapper.toUserResponseDto(user);
         }).orElseThrow(() -> new UserNotFoundException("User with id: " + id + "not found"));
     }
@@ -70,6 +71,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto changeUserRole(Role role, UUID id) {
+        log.debug("Changing user role by id: {}", id);
+
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id: " + id + "not found"));
         userEntity.setRole(role);
         userRepository.save(userEntity);
@@ -78,7 +81,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(UUID id) {
-        log.info("Deleting user by id: {}", id);
+        log.debug("Deleting user by id: {}", id);
         userRepository.deleteById(id);
     }
 
