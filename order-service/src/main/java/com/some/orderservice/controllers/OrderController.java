@@ -7,6 +7,7 @@ import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;
 import com.some.orderservice.model.entities.OrderItemEntity;
 import com.some.orderservice.services.OrderService;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

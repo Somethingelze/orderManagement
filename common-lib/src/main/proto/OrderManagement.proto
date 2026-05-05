@@ -18,9 +18,10 @@ message ProductRequestDto {
 }
 
 message AvailabilityProductsDto  {
-  bool isAvailable = 1;
-  repeated string unavailableProducts = 2;
-  map<string, int64> availableProducts = 3;
+  string orderId = 1;
+  bool isAvailable = 2;
+  repeated string unavailableProducts = 3;
+  map<string, int64> availableProducts = 4;
 }
 
 message ProductResponseDto {

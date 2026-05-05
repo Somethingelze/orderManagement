@@ -8,21 +8,21 @@ import com.some.notificationservice.service.NotificationSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class OrderEventHandler {
     private final NotificationSenderService notificationSenderService;
     private final NotificationInboxRepository notificationInboxRepository;
 
-    @KafkaListener(topics = "order.notifications", groupId = "notification-group")
-    @Transactional
+    @KafkaListener(
+            topics = "#{@orderConsumerProperties.topic()}",
+            groupId = "#{@orderConsumerProperties.groupId()}"
+    )
     public void receiveOrderEvent(OrderEvent event) {
         log.info("Processing event: {} for order: {}", event.eventId(), event.orderId());
         if (notificationInboxRepository.existsById(event.eventId())) {
@@ -30,7 +30,7 @@ public class OrderEventHandler {
             return;
         }
 
-        notificationSenderService.sendNotification(event);
         notificationInboxRepository.save(new NotificationInboxEntity(event.eventId(), LocalDateTime.now()));
+        notificationSenderService.sendNotification(event);
     }
 }

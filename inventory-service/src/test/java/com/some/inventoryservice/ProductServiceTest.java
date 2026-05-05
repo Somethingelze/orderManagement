@@ -123,7 +123,7 @@ class ProductServiceTest {
         OrderItemDto item = result.getItems(0);
         assertEquals(10000L, item.getPricePennies());
         assertEquals(1000L, item.getSalePennies());
-        assertEquals(18000L, item.getTotalPrice()); // (100 - 10) * 2 * 100
+        assertEquals(18000L, item.getTotalPrice());
     }
 
     @Test
@@ -155,7 +155,7 @@ class ProductServiceTest {
 
         productService.cancelConfirmation(ConfirmedOrderId.newBuilder().setId(orderId.toString()).build());
 
-        assertEquals(50L, product.getQuantity()); // Remains unchanged
+        assertEquals(50L, product.getQuantity());
         assertTrue(product.getReservedItemEntities().isEmpty());
         verify(reservedItemRepository).deleteAll(any());
     }

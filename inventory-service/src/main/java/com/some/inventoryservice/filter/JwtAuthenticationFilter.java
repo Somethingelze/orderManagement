@@ -1,4 +1,4 @@
-package com.some.inventoryservice.filters;
+package com.some.inventoryservice.filter;
 
 import com.some.commonlib.jwt.JwtUtils;
 import io.jsonwebtoken.Claims;

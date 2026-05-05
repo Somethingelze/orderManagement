@@ -1,4 +1,4 @@
-package com.some.orderservice.filters;
+package com.some.orderservice.filter;
 
 import com.some.commonlib.jwt.JwtUtils;
 import com.some.commonlib.model.UserPrincipal;
