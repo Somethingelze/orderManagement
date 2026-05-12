@@ -3,11 +3,12 @@ package com.some.inventoryservice.services.impl;
 import com.google.protobuf.Empty;
 import com.some.commonlib.annotations.Loggable;
 import com.some.grpc.inventory.*;
+import com.some.inventoryservice.exceptions.OrderIdNotFoundException;
 import com.some.inventoryservice.exceptions.ProductNotFoundException;
 import com.some.inventoryservice.model.entities.ProductEntity;
-import com.some.inventoryservice.model.entities.ReservedItemEntity;
+import com.some.inventoryservice.model.redisHash.redisHash.RedisReservation;
 import com.some.inventoryservice.repository.ProductRepository;
-import com.some.inventoryservice.repository.ReservedItemRepository;
+import com.some.inventoryservice.repository.ReservationProductsRepository;
 import com.some.inventoryservice.services.ProductService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,68 +28,35 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ReservedItemRepository reservedItemRepository;
+    private final ReservationProductsRepository reservationProductsRepository;
 
     @Override
-    @Transactional
     public AvailabilityProductsDto checkAvailability(ProductRequestDto request) {
 
-        if (reservedItemRepository.existsByOrderId(UUID.fromString(request.getOrderId())))  {
-            log.info("Duplicate request for order {}. Returning existing reservation.", request.getOrderId());
-
-            List<ReservedItemEntity> existingReservations = reservedItemRepository.findAllByOrderId(UUID.fromString(request.getOrderId()));
-
-            Map<String, Long> availableMap = existingReservations.stream()
-                    .collect(Collectors.toMap(
-                            item -> item.getProduct().getId().toString(),
-                            ReservedItemEntity::getQuantity
-                    ));
-
-            return AvailabilityProductsDto.newBuilder()
-                    .setIsAvailable(true)
-                    .putAllAvailableProducts(availableMap)
-                    .build();
-        }
-
         Map<String, Long> requestedProducts = request.getOrderItemsMap();
-        List<UUID> requestedIds = requestedProducts.keySet().stream().map(UUID::fromString).toList();
-        List<ProductEntity> existedProducts = productRepository.findAllById(requestedIds);
-
-        List<String> missedProductsIds = requestedProducts.entrySet().stream()
-                .filter(entry -> {
-                    UUID productId = UUID.fromString(entry.getKey());
-                    long requestedQty = entry.getValue();
-                    return existedProducts.stream()
-                            .filter(p -> p.getId().equals(productId))
-                            .findFirst()
-                            .map(p -> p.getQuantity() < requestedQty)
-                            .orElse(true);
-                })
-                .map(Map.Entry::getKey)
+        List<UUID> requestedIds = requestedProducts.keySet().stream()
+                .map(UUID::fromString)
                 .toList();
+        Map<UUID, ProductEntity> existedProducts = productRepository.findAllById(requestedIds).stream()
+                .collect(Collectors.toMap(ProductEntity::getId,
+                        product -> product));
 
-        List<ProductEntity> availableToReserve = existedProducts.stream()
-                .filter(p -> !missedProductsIds.contains(p.getId().toString()))
-                .toList();
+        List<String> missedProductsIds = new ArrayList<>();
+        Map<String, Long> availableProducts = new HashMap<>();
 
-        List<ReservedItemEntity> reservedItemEntities = availableToReserve.stream()
-                .map(product -> ReservedItemEntity.builder()
-                        .orderId(UUID.fromString(request.getOrderId()))
-                        .product(product)
-                        .quantity(requestedProducts.get(product.getId().toString()))
-                        .build())
-                .toList();
-        reservedItemRepository.saveAll(reservedItemEntities);
-
-        Map<String, Long> availabilityMap = availableToReserve.stream()
-                .collect(Collectors.toMap(
-                        p -> p.getId().toString(),
-                        p -> requestedProducts.get(p.getId().toString())
-                ));
+        requestedProducts.forEach((productId, quantity) -> {
+            ProductEntity product = existedProducts.get(UUID.fromString(productId));
+            if (product != null && product.getQuantity() >= quantity) {
+                availableProducts.put(productId, quantity);
+            } else {
+                missedProductsIds.add(productId);
+            }
+        });
 
         return AvailabilityProductsDto.newBuilder()
+                .setOrderId(request.getOrderId())
                 .setIsAvailable(missedProductsIds.isEmpty())
-                .putAllAvailableProducts(availabilityMap)
+                .putAllAvailableProducts(availableProducts)
                 .addAllUnavailableProducts(missedProductsIds)
                 .build();
     }
@@ -96,13 +64,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponseDto collectItems(AvailabilityProductsDto availabilityProductsDto) {
-
+        String orderId = availabilityProductsDto.getOrderId();
         Map<String, Long> availableProducts = availabilityProductsDto.getAvailableProductsMap();
-
         List<ProductEntity> products = productRepository.findAllById(availableProducts.keySet()
                 .stream()
                 .map(UUID::fromString)
                 .toList());
+
+        reserve(availableProducts, products, orderId);
 
         List<OrderItemDto> orderItems = new ArrayList<>();
 
@@ -117,8 +86,8 @@ public class ProductServiceImpl implements ProductService {
                     .setId(UUID.randomUUID().toString())
                     .setProductId(product.getId().toString())
                     .setProductName(product.getName())
-                    .setPricePennies(convertToPennies(product.getPrice()))
-                    .setSalePennies(convertToPennies(product.getSale()))
+                    .setPricePennies(price)
+                    .setSalePennies(sale)
                     .setTotalPrice(totalPrice)
                     .build();
 
@@ -133,46 +102,68 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Empty confirmOrder(ConfirmedOrderId request) {
+        RedisReservation redisReservation = reservationProductsRepository.findById(request.getId())
+                .orElseThrow(() -> new OrderIdNotFoundException("Reservation not found or expired"));
 
-        UUID orderId = UUID.fromString(request.getId());
-        List<ReservedItemEntity> reservedItemEntities = reservedItemRepository.findAllByOrderId(orderId);
+        Map<String, Long> reservedProducts = redisReservation.getReservedProducts();
+        List<ProductEntity> products = productRepository.findAllById(reservedProducts.keySet()
+                .stream()
+                .map(UUID::fromString)
+                .toList()
+        );
 
-        for (ReservedItemEntity item : reservedItemEntities) {
-            ProductEntity product = item.getProduct();
-            product.setQuantity(product.getQuantity() - item.getQuantity());
+        products.forEach(product -> {
+            product.setReservedQuantity(product.getReservedQuantity() - reservedProducts.get(product.getId().toString()));
+        });
 
-            product.getReservedItemEntities().remove(item);
-        }
-        reservedItemRepository.deleteAll(reservedItemEntities);
+        reservationProductsRepository.deleteById(request.getId());
         return Empty.getDefaultInstance();
     }
 
     @Override
     @Transactional
     public Empty cancelConfirmation(ConfirmedOrderId request) {
-        UUID orderId = UUID.fromString(request.getId());
-        List<ReservedItemEntity> reservedItemEntities = reservedItemRepository.findAllByOrderId(orderId);
+        RedisReservation redisReservation = reservationProductsRepository.findById(request.getId())
+                .orElseThrow(() -> new OrderIdNotFoundException("Reservation not found or expired"));
+        Map<String, Long>  reservedProducts = redisReservation.getReservedProducts();
 
-        for (ReservedItemEntity item : reservedItemEntities) {
-            ProductEntity product = item.getProduct();
+        List<ProductEntity> products = productRepository.findAllById(reservedProducts.keySet()
+                .stream()
+                .map(UUID::fromString)
+                .toList());
 
-            product.getReservedItemEntities().remove(item);
-        }
+        products.forEach(product -> {
+            Long quantity = reservedProducts.get(product.getId().toString());
+            product.setQuantity(product.getQuantity() + quantity);
+            product.setReservedQuantity(product.getReservedQuantity() - quantity);
+        });
 
-        reservedItemRepository.deleteAll(reservedItemEntities);
+        reservationProductsRepository.deleteById(request.getId());
         return Empty.getDefaultInstance();
     }
 
+
     @Override
     @Transactional
-    public ReservedItemEntity reserveProductsInInventory(ProductEntity productEntity, Long requestedQuantity, String orderId) {
-        ReservedItemEntity reservedItemEntity = ReservedItemEntity.builder()
-                .id(UUID.randomUUID())
-                .orderId(UUID.fromString(orderId))
-                .product(productEntity)
-                .quantity(requestedQuantity)
+    public RedisReservation reserve(Map<String, Long> reservedProducts, List<ProductEntity> products, String orderId) {
+        if (reservationProductsRepository.existsById(orderId))    {
+            log.debug("Duplicate request for order {}. Returning existing reservation.", orderId);
+            return reservationProductsRepository.findById(orderId).orElseThrow(() ->
+                    new OrderIdNotFoundException("Order id not found."));
+        }
+
+        products.forEach(product -> {
+            product.setQuantity(product.getQuantity() - reservedProducts.get(String.valueOf(product.getId())));
+            product.setReservedQuantity(product.getReservedQuantity() + reservedProducts.get(String.valueOf(product.getId())));
+        });
+
+        RedisReservation redisReservations = RedisReservation.builder()
+                .orderId(orderId)
+                .reservedProducts(reservedProducts)
                 .build();
-        return reservedItemRepository.save(reservedItemEntity);
+
+        log.debug("Saving reservation to Redis for order: {}", orderId);
+        return reservationProductsRepository.save(redisReservations);
     }
 
     @Override
@@ -205,8 +196,7 @@ public class ProductServiceImpl implements ProductService {
                     newProduct.setPrice(productEntity.getPrice());
                     newProduct.setSale(productEntity.getSale());
                     newProduct.setQuantity(productEntity.getQuantity());
-                    newProduct.setReservedItemEntities(productEntity.getReservedItemEntities());
-                    productRepository.save(newProduct);
+                    newProduct.setReservedQuantity(productEntity.getReservedQuantity());
                     return newProduct;
                 })
                 .orElseThrow(() -> new ProductNotFoundException("Product with id: " + id + "not found"));

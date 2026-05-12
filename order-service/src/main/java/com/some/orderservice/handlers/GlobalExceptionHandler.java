@@ -1,5 +1,6 @@
 package com.some.orderservice.handlers;
 
+import com.some.orderservice.exceptions.InventoryServiceUnavailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +11,10 @@ import java.io.IOException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(value = InventoryServiceUnavailableException.class)
+    public ResponseEntity<?> handleInventoryServiceUnavailableException(InventoryServiceUnavailableException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(exception.getMessage());
+    }
 
     @ExceptionHandler(value = IOException.class)
     public ResponseEntity<?> handleIOException(IOException exception) {

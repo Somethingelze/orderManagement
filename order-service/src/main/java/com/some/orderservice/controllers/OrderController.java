@@ -1,7 +1,6 @@
 package com.some.orderservice.controllers;
 
 import com.some.commonlib.annotations.Loggable;
-import com.some.grpc.inventory.ProductRequestDto;
 import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;
@@ -37,13 +36,13 @@ public class OrderController {
         return ResponseEntity.ok().body(orderService.getAllOrders(pageable));
     }
 
-    @GetMapping("/products/{id}")
-    public ResponseEntity<Page<OrderItemEntity>> getProductsByOrderId(@PathVariable UUID id, Pageable pageable) {
-        return ResponseEntity.ok().body(orderService.getAllOrderItemsByOrderId(pageable, id));
+    @GetMapping("/products")
+    public ResponseEntity<Page<OrderItemEntity>> getProductsByOrderId(@RequestParam UUID orderId, Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrderItemsByOrderId(pageable, orderId));
     }
 
-    @GetMapping("/users/{id}")
-    public ResponseEntity<Page<OrderEntity>> getOrdersByUserId(@PathVariable UUID id, Pageable pageable) {
-        return ResponseEntity.ok().body(orderService.getAllOrdersByUserId(pageable, id));
+    @GetMapping("/users")
+    public ResponseEntity<Page<OrderEntity>> getOrdersByUserId(@RequestParam UUID userId, Pageable pageable) {
+        return ResponseEntity.ok().body(orderService.getAllOrdersByUserId(pageable, userId));
     }
 }

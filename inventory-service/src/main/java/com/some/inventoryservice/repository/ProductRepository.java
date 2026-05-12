@@ -1,15 +1,11 @@
 package com.some.inventoryservice.repository;
 
 import com.some.inventoryservice.model.entities.ProductEntity;
-import com.some.inventoryservice.model.entities.ReservedItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
-    List<ProductEntity> findAllByReservedItemEntities(List<ReservedItemEntity> reservedItemEntities);
 }

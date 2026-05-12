@@ -6,18 +6,21 @@ import com.some.grpc.inventory.ConfirmedOrderId;
 import com.some.grpc.inventory.ProductRequestDto;
 import com.some.grpc.inventory.ProductResponseDto;
 import com.some.inventoryservice.model.entities.ProductEntity;
-import com.some.inventoryservice.model.entities.ReservedItemEntity;
+import com.some.inventoryservice.model.redisHash.redisHash.RedisReservation;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
 public interface ProductService {
 
-
-    ReservedItemEntity reserveProductsInInventory(ProductEntity productEntity, Long requestedQuantity, String orderId);
+    @Transactional
+    RedisReservation reserve(Map<String, Long> availableProducts, List<ProductEntity> products, String orderId);
 
     long convertToPennies(BigDecimal value);
 

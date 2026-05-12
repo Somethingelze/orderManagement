@@ -4,8 +4,6 @@ import com.some.commonlib.annotations.Loggable;
 import com.some.commonlib.model.OrderItem;
 import com.some.commonlib.model.event.OrderEvent;
 import com.some.grpc.inventory.OrderItemDto;
-import com.some.grpc.inventory.ProductRequestDto;
-import com.some.orderservice.model.dto.Request.OrderRequestDto;
 import com.some.orderservice.model.dto.Responce.OrderResponseDto;
 import com.some.orderservice.model.entities.OrderEntity;
 import com.some.orderservice.model.entities.OrderItemEntity;
@@ -39,15 +37,13 @@ public interface OrderMapper {
     @Mapping(target = "orderId", source = "order.id")
     OrderItem toOrderItem(OrderItemEntity orderItemEntity);
 
-    OrderItemDto toOrderItemDto(OrderItemEntity orderItemEntity);
-
-    @AfterMapping
-    default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {
-        if (source.orderItems() != null) {
-            target.putAllOrderItems(source.orderItems());
-        }
-    }
-
+//    @AfterMapping
+//    default void mapOrderItems(OrderRequestDto source, @MappingTarget ProductRequestDto.Builder target) {
+//        if (source.orderItems() != null) {
+//            target.putAllOrderItems(source.orderItems());
+//        }
+//    }
+//
     @AfterMapping
     default void linkOrderItems(@MappingTarget OrderEntity orderEntity) {
         if (orderEntity.getOrderItems() != null) {

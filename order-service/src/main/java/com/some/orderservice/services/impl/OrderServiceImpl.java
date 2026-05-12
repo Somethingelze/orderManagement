@@ -39,7 +39,6 @@ public class OrderServiceImpl implements OrderService {
     private final OutboxService outboxService;
 
     @Override
-    @Transactional
     public OrderResponseDto processOrder(OrderRequestDto orderRequestDto) {
         log.info("Received Order Request {}",  orderRequestDto);
 
@@ -50,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
                 .status(Status.CREATED)
                 .build();
         outboxService.saveAndOutbox(orderEntity);
-        log.info("Order Created for {}", orderEntity.toString());
+        log.debug("Order Created for {}", orderEntity.toString());
 
         ConfirmedOrderId confirmedOrderId = ConfirmedOrderId.newBuilder()
                 .setId(orderEntity.getId().toString())
@@ -77,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
             cancelConfirmation(confirmedOrderId, orderEntity);
         }
 
-        log.info("Order confirm products for {}", orderEntity);
+        log.debug("Order confirm products for {}", orderEntity);
         return orderMapper.toOrderResponseDto(orderEntity);
     }
 
@@ -88,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
             orderEntity.setStatus(Status.REJECTED);
             orderEntity.setUnavailableProductsIds(availabilityProductsDto.getUnavailableProductsList());
             outboxService.saveAndOutbox(orderEntity);
-            log.info("Order Rejected for {}. Unavailable products: {}", orderEntity.getId(), orderEntity.getUnavailableProductsIds());
+            log.debug("Order Rejected for {}. Unavailable products: {}", orderEntity.getId(), orderEntity.getUnavailableProductsIds());
             return AvailabilityProductsDto.newBuilder()
                     .setIsAvailable(false)
                     .addAllUnavailableProducts(availabilityProductsDto.getUnavailableProductsList())
@@ -98,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
         if (!availabilityProductsDto.getIsAvailable()) {
             orderEntity.setStatus(Status.PARTIAL_RESERVED);
             orderEntity.setUnavailableProductsIds(availabilityProductsDto.getUnavailableProductsList());
-            log.info("Order Partial reserved for {}. Unavailable products: {}. Available products: {}",
+            log.debug("Order Partial reserved for {}. Unavailable products: {}. Available products: {}",
                     orderEntity.getId(), availabilityProductsDto.getUnavailableProductsList(), availabilityProductsDto.getAvailableProductsMap());
             outboxService.saveAndOutbox(orderEntity);
         } else {
@@ -106,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
             log.info("Order {} successfully reserved for products {}", orderEntity.getId(), availabilityProductsDto.getAvailableProductsMap());
             outboxService.saveAndOutbox(orderEntity);
         }
-        log.info("Order check availability for {}", orderEntity);
+        log.debug("Order check availability for {}", orderEntity);
         return availabilityProductsDto;
     }
 
@@ -129,7 +128,7 @@ public class OrderServiceImpl implements OrderService {
         });
 
         outboxService.saveAndOutbox(orderEntity);
-        log.info("Order collect products for {}", orderEntity);
+        log.debug("Order collect products for {}", orderEntity);
     }
 
     public void confirmOrder(ConfirmedOrderId confirmedOrderId, OrderEntity orderEntity) {

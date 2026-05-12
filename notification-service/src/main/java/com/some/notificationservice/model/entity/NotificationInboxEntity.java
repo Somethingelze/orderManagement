@@ -21,5 +21,6 @@ public class NotificationInboxEntity {
     @Id
     private UUID messageId;
 
+    @CreationTimestamp
     private LocalDateTime processedAt;
 }

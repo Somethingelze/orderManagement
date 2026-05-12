@@ -1,6 +1,6 @@
 package com.some.orderservice.configuration;
 
-import com.some.orderservice.filters.JwtAuthenticationFilter;
+import com.some.orderservice.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
