@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.some.grpc.inventory";
+
+import "google/protobuf/empty.proto";
+
+service InventoryService {
+  rpc checkAvailability (ProductRequestDto) returns (AvailabilityProductsDto);
+  rpc collectOrder (AvailabilityProductsDto) returns (ProductResponseDto);
+  rpc confirmOrder (ConfirmedOrderId) returns (google.protobuf.Empty);
+  rpc cancelConfirmation (ConfirmedOrderId) returns (google.protobuf.Empty);
+}
+
+message ProductRequestDto {
+  string orderId = 1;
+  map<string, int64> order_items = 2;
+}
+
+message AvailabilityProductsDto  {
+  string orderId = 1;
+  bool isAvailable = 2;
+  repeated string unavailableProducts = 3;
+  map<string, int64> availableProducts = 4;
+}
+
+message ProductResponseDto {
+  repeated OrderItemDto items = 1;
+}
+
+message OrderItemDto {
+  string id = 1;
+  string product_id = 2;
+  string product_name = 3;
+  int64 price_pennies = 4;
+  int64 sale_pennies = 5;
+  int64 total_price = 6;
+}
+
+message ConfirmedOrderId{
+  string id = 1;
+}
+
+message ErrorDetails {
+  string field = 1;
+  string description = 2;
+}
